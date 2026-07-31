@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Проба сховища</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#111111">
+<style>
+  body {
+    background: #111;
+    color: #eee;
+    font-family: sans-serif;
+    font-size: 18px;
+    line-height: 1.5;
+    padding: 12px;
+    padding-bottom: env(safe-area-inset-bottom);
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 22px; }
+  h2 { font-size: 18px; margin-top: 24px; border-bottom: 1px solid #444; padding-bottom: 4px; }
+  .row { margin: 10px 0; padding: 8px; border-radius: 8px; background: #1c1c1c; }
+  .ok { border-left: 6px solid #2ecc71; }
+  .bad { border-left: 6px solid #e74c3c; }
+  .warn { border-left: 6px solid #f1c40f; }
+  button {
+    min-height: 48px;
+    min-width: 48px;
+    font-size: 18px;
+    background: #2c2c2c;
+    color: #eee;
+    border: 1px solid #555;
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin: 6px 6px 6px 0;
+  }
+  button:active { background: #3a3a3a; }
+  textarea {
+    width: 100%;
+    height: 200px;
+    background: #000;
+    color: #0f0;
+    font-family: monospace;
+    font-size: 14px;
+  }
+  code { background: #222; padding: 2px 4px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<h1>Проба сховища (Крок 0)</h1>
+<p>Одноразовий діагностичний файл. Не частина застосунку.</p>
+
+<div id="report"></div>
+
+<h2>9. Режим відображення</h2>
+<div id="displayModeRow"></div>
+
+<h2>10. Постійне сховище</h2>
+<button id="btnPersist">Запросити постійне сховище</button>
+<div id="persistStatus"></div>
+<div id="estimateStatus"></div>
+
+<h2>11. Звіт цілком</h2>
+<button id="btnCopyReport">Скопіювати весь звіт у буфер</button>
+<div id="reportCopyStatus"></div>
+<textarea id="reportText" readonly></textarea>
+
+<script>
+(function () {
+  var report = document.getElementById('report');
+  var lines = []; // текстові рядки для підсумкового звіту
+
+  function addRow(status, title, detail) {
+    var cls = status === 'ok' ? 'ok' : (status === 'bad' ? 'bad' : 'warn');
+    var icon = status === 'ok' ? '✅' : (status === 'bad' ? '❌' : '⚠️');
+    var div = document.createElement('div');
+    div.className = 'row ' + cls;
+    div.textContent = icon + ' ' + title + ' — ' + detail;
+    report.appendChild(div);
+    lines.push(icon + ' ' + title + ' — ' + detail);
+  }
+
+  function addHeader(text) {
+    var h = document.createElement('h2');
+    h.textContent = text;
+    report.appendChild(h);
+    lines.push('\n== ' + text + ' ==');
+  }
+
+  // 0. origin і адреса — звідки прогін
+  lines.push('== 0. Джерело прогону ==');
+  try {
+    lines.push('URL: ' + location.href);
+    lines.push('Origin: ' + location.origin);
+  } catch (e) {
+    lines.push('Помилка читання адреси: ' + e);
+  }
+
+  // 1. origin
+  addHeader('1. Origin');
+  try {
+    var origin = location.origin;
+    var proto = location.protocol;
+    if (origin === 'null' || origin === null) {
+      addRow('warn', 'Origin ізольований', 'location.origin = "null", protocol = ' + proto + '. Це головний ризик: сховище може бути ненадійним на file://.');
+    } else {
+      addRow('ok', 'Origin нормальний', 'location.origin = ' + origin + ', protocol = ' + proto);
+    }
+  } catch (e) {
+    addRow('bad', 'Помилка читання origin', String(e));
+  }
+
+  // 2. localStorage базово пише/читає
+  addHeader('2. localStorage базово');
+  var lsWorks = false;
+  try {
+    var testKey = '__probe_basic__';
+    var testVal = 'test-' + Date.now();
+    localStorage.setItem(testKey, testVal);
+    var readBack = localStorage.getItem(testKey);
+    if (readBack === testVal) {
+      lsWorks = true;
+      addRow('ok', 'localStorage пише і читає', 'Записано і прочитано значення, збіглося.');
+    } else {
+      addRow('bad', 'localStorage не збігається', 'Записано "' + testVal + '", прочитано "' + readBack + '"');
+    }
+    localStorage.removeItem(testKey);
+  } catch (e) {
+    addRow('bad', 'localStorage кинув помилку', String(e));
+  }
+
+  // 3. скільки влазить
+  addHeader('3. Обсяг localStorage');
+  if (!lsWorks) {
+    addRow('warn', 'Пропущено', 'localStorage не працює базово, тест обсягу не має сенсу.');
+  } else {
+    try {
+      var chunkKeyPrefix = '__probe_quota_';
+      var chunk = new Array(100 * 1024 + 1).join('a'); // ~100KB
+      var count = 0;
+      var maxChunks = 300; // запобіжник, ~30МБ верхня межа проби
+      try {
+        for (count = 0; count < maxChunks; count++) {
+          localStorage.setItem(chunkKeyPrefix + count, chunk);
+        }
+        addRow('warn', 'Досягнуто ліміт проби', 'Записано ' + (count * 100 / 1024).toFixed(2) + ' МБ без помилки квоти (зупинено запобіжником).');
+      } catch (quotaErr) {
+        var mb = (count * 100 / 1024).toFixed(2);
+        addRow('ok', 'Квота досягнута', 'Влізло приблизно ' + mb + ' МБ (' + count + ' чанків по 100 КБ) до помилки: ' + quotaErr.name);
+      }
+      // прибираємо за собою
+      for (var i = 0; i < count + 1; i++) {
+        try { localStorage.removeItem(chunkKeyPrefix + i); } catch (cleanupErr) {}
+      }
+      addRow('ok', 'Прибрано тестові ключі', 'Сховище очищено від __probe_quota_* ключів.');
+    } catch (e) {
+      addRow('bad', 'Помилка тесту обсягу', String(e));
+    }
+  }
+
+  // 4. виживання після перезапуску
+  addHeader('4. Виживання даних після перезапуску браузера');
+  var survKey = '__probe_survive_ts__';
+  try {
+    var existing = localStorage.getItem(survKey);
+    if (existing === null) {
+      var now = Date.now();
+      localStorage.setItem(survKey, String(now));
+      addRow('warn', 'Мітку щойно поставлено', 'Закрий браузер ПОВНІСТЮ (не просто вкладку) і відкрий цей файл знову, щоб перевірити виживання.');
+    } else {
+      var ts = parseInt(existing, 10);
+      var diffMs = Date.now() - ts;
+      var diffMin = Math.round(diffMs / 60000);
+      addRow('ok', 'Мітка на місці', 'Поставлена ' + diffMin + ' хв тому (' + new Date(ts).toLocaleString() + '). Дані пережили перезапуск.');
+    }
+  } catch (e) {
+    addRow('bad', 'Помилка тесту виживання', String(e));
+  }
+  var resetBtnDiv = document.createElement('div');
+  var resetBtn = document.createElement('button');
+  resetBtn.textContent = 'Скинути мітку';
+  resetBtn.onclick = function () {
+    try {
+      localStorage.removeItem(survKey);
+      alert('Мітку скинуто. Онови сторінку, щоб поставити нову.');
+    } catch (e) {
+      alert('Помилка скидання: ' + e);
+    }
+  };
+  resetBtnDiv.appendChild(resetBtn);
+  report.appendChild(resetBtnDiv);
+
+  // 5. Експорт файлу через Blob
+  addHeader('5. Експорт файлу (Blob + download)');
+  var exportDiv = document.createElement('div');
+  var exportBtn = document.createElement('button');
+  exportBtn.textContent = 'Завантажити тестовий .json';
+  exportBtn.onclick = function () {
+    try {
+      var data = { probe: true, ts: Date.now(), note: 'тестовий файл проби сховища' };
+      var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'probe-export.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+    } catch (e) {
+      alert('Помилка експорту: ' + e);
+    }
+  };
+  exportDiv.appendChild(exportBtn);
+  var exportNote = document.createElement('p');
+  exportNote.textContent = 'Натисни, потім перевір самостійно (скрипт цього не бачить): чи з\'явився файл probe-export.json у завантаженнях.';
+  exportDiv.appendChild(exportNote);
+  report.appendChild(exportDiv);
+
+  // 6. Копіювання в буфер
+  addHeader('6. Копіювання в буфер');
+  var clipDiv = document.createElement('div');
+  var clipBtn = document.createElement('button');
+  clipBtn.textContent = 'Тест копіювання в буфер';
+  var clipStatus = document.createElement('div');
+  clipBtn.onclick = function () {
+    var text = 'проба буфера ' + Date.now();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        clipStatus.textContent = '✅ Спрацював navigator.clipboard.writeText';
+      }).catch(function (err) {
+        clipStatus.textContent = '⚠️ navigator.clipboard відхилив: ' + err + '. Пробую фолбек...';
+        fallbackCopy(text, clipStatus);
+      });
+    } else {
+      clipStatus.textContent = '⚠️ navigator.clipboard недоступний. Пробую фолбек execCommand...';
+      fallbackCopy(text, clipStatus);
+    }
+  };
+  function fallbackCopy(text, statusEl) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      var ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      statusEl.textContent = ok ? '✅ Спрацював фолбек document.execCommand("copy")' : '❌ Жоден спосіб копіювання не спрацював';
+    } catch (e) {
+      statusEl.textContent = '❌ Фолбек кинув помилку: ' + e;
+    }
+  }
+  clipDiv.appendChild(clipBtn);
+  clipDiv.appendChild(clipStatus);
+  report.appendChild(clipDiv);
+
+  // 7. IndexedDB
+  addHeader('7. IndexedDB (запасний варіант)');
+  try {
+    if (!window.indexedDB) {
+      addRow('bad', 'IndexedDB відсутній', 'window.indexedDB не визначено в цьому середовищі.');
+    } else {
+      var req = indexedDB.open('probeDB', 1);
+      req.onupgradeneeded = function (e) {
+        var db = e.target.result;
+        if (!db.objectStoreNames.contains('probeStore')) {
+          db.createObjectStore('probeStore');
+        }
+      };
+      req.onsuccess = function (e) {
+        var db = e.target.result;
+        try {
+          var tx = db.transaction('probeStore', 'readwrite');
+          var store = tx.objectStore('probeStore');
+          var val = 'idb-test-' + Date.now();
+          store.put(val, 'probeKey');
+          tx.oncomplete = function () {
+            var tx2 = db.transaction('probeStore', 'readonly');
+            var store2 = tx2.objectStore('probeStore');
+            var getReq = store2.get('probeKey');
+            getReq.onsuccess = function () {
+              if (getReq.result === val) {
+                addRow('ok', 'IndexedDB працює', 'Запис і читання значення пройшли успішно.');
+              } else {
+                addRow('bad', 'IndexedDB не збігається', 'Записано "' + val + '", прочитано "' + getReq.result + '"');
+              }
+              refreshReportText();
+            };
+            getReq.onerror = function () {
+              addRow('bad', 'IndexedDB помилка читання', String(getReq.error));
+              refreshReportText();
+            };
+          };
+        } catch (txErr) {
+          addRow('bad', 'IndexedDB помилка транзакції', String(txErr));
+          refreshReportText();
+        }
+      };
+      req.onerror = function () {
+        addRow('bad', 'IndexedDB не відкрився', String(req.error));
+        refreshReportText();
+      };
+    }
+  } catch (e) {
+    addRow('bad', 'IndexedDB кинув виняток', String(e));
+  }
+
+  // 9. Режим відображення
+  (function () {
+    var box = document.getElementById('displayModeRow');
+    try {
+      var isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+      var text = isStandalone ? 'standalone (встановлений застосунок)' : 'browser (відкрито у вкладці)';
+      var cls = isStandalone ? 'ok' : 'warn';
+      var icon = isStandalone ? '✅' : '⚠️';
+      var div = document.createElement('div');
+      div.className = 'row ' + cls;
+      div.textContent = icon + ' Режим відображення — ' + text;
+      box.appendChild(div);
+      lines.push('\n== 9. Режим відображення ==');
+      lines.push(icon + ' Режим відображення — ' + text);
+    } catch (e) {
+      lines.push('\n== 9. Режим відображення ==');
+      lines.push('❌ Помилка перевірки display-mode: ' + e);
+    }
+  })();
+
+  // 10. Постійне сховище + оцінка квоти
+  lines.push('\n== 10. Постійне сховище ==');
+  var persistBtn = document.getElementById('btnPersist');
+  var persistStatus = document.getElementById('persistStatus');
+  var estimateStatus = document.getElementById('estimateStatus');
+  persistBtn.onclick = function () {
+    try {
+      if (navigator.storage && navigator.storage.persist) {
+        navigator.storage.persist().then(function (granted) {
+          var text = 'navigator.storage.persist() → ' + granted;
+          persistStatus.textContent = (granted ? '✅ ' : '⚠️ ') + text;
+          lines.push((granted ? '✅ ' : '⚠️ ') + text);
+          refreshReportText();
+        }).catch(function (e) {
+          persistStatus.textContent = '❌ Помилка persist(): ' + e;
+          lines.push('❌ Помилка persist(): ' + e);
+          refreshReportText();
+        });
+      } else {
+        persistStatus.textContent = '⚠️ navigator.storage.persist недоступний у цьому середовищі.';
+        lines.push('⚠️ navigator.storage.persist недоступний у цьому середовищі.');
+        refreshReportText();
+      }
+    } catch (e) {
+      persistStatus.textContent = '❌ Виняток persist(): ' + e;
+      lines.push('❌ Виняток persist(): ' + e);
+      refreshReportText();
+    }
+    try {
+      if (navigator.storage && navigator.storage.estimate) {
+        navigator.storage.estimate().then(function (est) {
+          var usageMb = (est.usage / (1024 * 1024)).toFixed(2);
+          var quotaMb = (est.quota / (1024 * 1024)).toFixed(2);
+          var text = 'usage ' + usageMb + ' МБ / quota ' + quotaMb + ' МБ';
+          estimateStatus.textContent = '✅ ' + text;
+          lines.push('✅ Оцінка сховища — ' + text);
+          refreshReportText();
+        }).catch(function (e) {
+          estimateStatus.textContent = '❌ Помилка estimate(): ' + e;
+          lines.push('❌ Помилка estimate(): ' + e);
+          refreshReportText();
+        });
+      } else {
+        estimateStatus.textContent = '⚠️ navigator.storage.estimate недоступний у цьому середовищі.';
+        lines.push('⚠️ navigator.storage.estimate недоступний у цьому середовищі.');
+        refreshReportText();
+      }
+    } catch (e) {
+      estimateStatus.textContent = '❌ Виняток estimate(): ' + e;
+      lines.push('❌ Виняток estimate(): ' + e);
+      refreshReportText();
+    }
+  };
+
+  // Формування текстового звіту
+  var reportTextArea = document.getElementById('reportText');
+  function refreshReportText() {
+    reportTextArea.value = lines.join('\n');
+  }
+  refreshReportText();
+
+  // 11. кнопка копіювання звіту
+  var copyReportBtn = document.getElementById('btnCopyReport');
+  var copyReportStatus = document.getElementById('reportCopyStatus');
+  copyReportBtn.onclick = function () {
+    refreshReportText();
+    var text = reportTextArea.value;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        copyReportStatus.textContent = '✅ Звіт скопійовано в буфер.';
+      }).catch(function () {
+        fallbackCopy(text, copyReportStatus);
+        reportTextArea.select();
+      });
+    } else {
+      fallbackCopy(text, copyReportStatus);
+      reportTextArea.select();
+    }
+  };
+
+  // Реєстрація Service Worker
+  try {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(function () {
+        console.log('SW зареєстровано');
+      }).catch(function (e) {
+        console.warn('SW не зареєструвався: ' + e);
+      });
+    }
+  } catch (e) {
+    console.warn('Помилка реєстрації SW: ' + e);
+  }
+})();
+</script>
+</body>
+</html>
