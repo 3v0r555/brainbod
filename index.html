@@ -2,6 +2,7 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
+<meta name="app-version" content="0.4.0+2026080112">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>BrainBod</title>
 <link rel="manifest" href="./manifest.json">
@@ -2955,12 +2956,12 @@ button {
   "use strict";
 
   // Версію штампує build.ps1 у <meta name="app-version" content="...">
-  // (index.html → сюди підставляється 0.4.0+2026080112). У непобудованому
+  // (index.html → сюди підставляється __APP_VERSION__). У непобудованому
   // джерелі такого meta-тега нема — тоді лишається значення для розробки.
   var APP_VERSION = "0.1.0-dev";
   try {
     var verMeta = document.querySelector('meta[name="app-version"]');
-    if (verMeta && verMeta.content && verMeta.content.indexOf("0.4.0+2026080112") === -1) {
+    if (verMeta && verMeta.content && verMeta.content.indexOf("__APP_VERSION__") === -1) {
       APP_VERSION = verMeta.content;
     }
   } catch (e) { /* ігноруємо — лишається dev-значення */ }
