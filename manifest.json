@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Проба сховища — Тренування",
-  "short_name": "Тренування",
+  "name": "BrainBod",
+  "short_name": "BrainBod",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

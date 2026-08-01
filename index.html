@@ -1,427 +1,3473 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Проба сховища</title>
+<title>BrainBod</title>
 <link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#111111">
+<meta name="theme-color" content="#101114">
 <style>
-  body {
-    background: #111;
-    color: #eee;
-    font-family: sans-serif;
-    font-size: 18px;
-    line-height: 1.5;
-    padding: 12px;
-    padding-bottom: env(safe-area-inset-bottom);
-    max-width: 700px;
-    margin: 0 auto;
-  }
-  h1 { font-size: 22px; }
-  h2 { font-size: 18px; margin-top: 24px; border-bottom: 1px solid #444; padding-bottom: 4px; }
-  .row { margin: 10px 0; padding: 8px; border-radius: 8px; background: #1c1c1c; }
-  .ok { border-left: 6px solid #2ecc71; }
-  .bad { border-left: 6px solid #e74c3c; }
-  .warn { border-left: 6px solid #f1c40f; }
-  button {
-    min-height: 48px;
-    min-width: 48px;
-    font-size: 18px;
-    background: #2c2c2c;
-    color: #eee;
-    border: 1px solid #555;
-    border-radius: 8px;
-    padding: 10px 16px;
-    margin: 6px 6px 6px 0;
-  }
-  button:active { background: #3a3a3a; }
-  textarea {
-    width: 100%;
-    height: 200px;
-    background: #000;
-    color: #0f0;
-    font-family: monospace;
-    font-size: 14px;
-  }
-  code { background: #222; padding: 2px 4px; border-radius: 4px; }
+/* ==========================================================================
+   app.css — базова CSS-система застосунку
+   Темна тема (зал, погане світло), кнопки >=48px, dvh, safe-area.
+   Без анімацій-прикрас: лише миттєві переходи стану (0s / instant swap).
+   ========================================================================== */
+
+:root {
+  /* --- Кольори --- */
+  --color-bg: #101114;
+  --color-bg-elevated: #1b1d22;
+  --color-bg-card: #1f2127;
+  --color-border: #33363d;
+  --color-text: #f2f3f5;
+  --color-text-dim: #9a9da5;
+  --color-text-faint: #6b6e76;
+  --color-accent: #4f8cff;
+  --color-accent-text: #ffffff;
+  --color-danger: #ff5d5d;
+  --color-success: #3ecf7e;
+  --color-warn: #e8b339;
+
+  /* --- Відступи (8pt grid) --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* --- Радіуси --- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* --- Типографічна шкала (читати з витягнутої руки) --- */
+  --font-size-xs: 13px;
+  --font-size-sm: 15px;
+  --font-size-base: 17px;
+  --font-size-lg: 20px;
+  --font-size-xl: 26px;
+  --font-size-2xl: 34px;
+  --font-size-number: 48px; /* вага/повтори — головні цифри екрана */
+
+  /* --- Розміри інтерактивних елементів --- */
+  --tap-min: 48px;
+  --nav-height: 64px;
+}
+
+/* --- Скидання --- */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: var(--font-size-base);
+  line-height: 1.4;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2, h3, p, ul, li {
+  margin: 0;
+  padding: 0;
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* ==========================================================================
+   Розкладка застосунку
+   ========================================================================== */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.app-main {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--space-4);
+  padding-bottom: calc(var(--nav-height) + var(--space-5) + env(safe-area-inset-bottom));
+}
+
+/* ==========================================================================
+   Типографія екранів
+   ========================================================================== */
+
+.screen-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  margin-bottom: var(--space-4);
+}
+
+.screen-stub {
+  color: var(--color-text-dim);
+  font-size: var(--font-size-base);
+  padding: var(--space-5) 0;
+}
+
+.number-display {
+  font-size: var(--font-size-number);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+/* ==========================================================================
+   Картка
+   ========================================================================== */
+
+.card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+/* ==========================================================================
+   Ряд списку
+   ========================================================================== */
+
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--tap-min);
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.list-row:last-child {
+  border-bottom: none;
+}
+
+/* ==========================================================================
+   Чип
+   ========================================================================== */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-min);
+  min-width: var(--tap-min);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+}
+
+.chip[aria-pressed="true"],
+.chip.is-active {
+  background: var(--color-accent);
+  color: var(--color-accent-text);
+  border-color: var(--color-accent);
+  font-weight: 700; /* не лише колір — і накреслення */
+}
+
+/* ==========================================================================
+   ±-степер
+   ========================================================================== */
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.stepper-btn {
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepper-btn:active {
+  background: var(--color-bg-card);
+}
+
+.stepper-value {
+  min-width: 64px;
+  text-align: center;
+  font-size: var(--font-size-lg);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   Кнопки: первинна / вторинна
+   ========================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-min);
+  width: 100%;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-size: var(--font-size-base);
+  font-weight: 700;
+}
+
+.btn-primary {
+  background: var(--color-accent);
+  color: var(--color-accent-text);
+}
+
+.btn-primary:active {
+  background: #3d73d8;
+}
+
+.btn-secondary {
+  background: transparent;
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.btn-secondary:active {
+  background: var(--color-bg-elevated);
+}
+
+/* ==========================================================================
+   Нижня навігація
+   ========================================================================== */
+
+.bottom-nav {
+  display: flex;
+  flex-shrink: 0;
+  background: var(--color-bg-elevated);
+  border-top: 1px solid var(--color-border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.nav-item {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: var(--nav-height);
+  background: transparent;
+  border: none;
+  color: var(--color-text-dim);
+  font-size: var(--font-size-xs);
+}
+
+.nav-item-icon {
+  font-size: var(--font-size-lg);
+  line-height: 1;
+}
+
+.nav-item.is-active {
+  color: var(--color-text);
+  font-weight: 700;
+  border-top: 3px solid var(--color-accent); /* не лише колір — і лінія */
+}
+
+/* ==========================================================================
+   Дрібниці
+   ========================================================================== */
+
+.text-dim {
+  color: var(--color-text-dim);
+}
+
+.text-faint {
+  color: var(--color-text-faint);
+  font-size: var(--font-size-xs);
+}
+
 </style>
 </head>
 <body>
-<h1>Проба сховища (Крок 0)</h1>
-<p>Одноразовий діагностичний файл. Не частина застосунку.</p>
-
-<div id="report"></div>
-
-<h2>9. Режим відображення</h2>
-<div id="displayModeRow"></div>
-
-<h2>10. Постійне сховище</h2>
-<button id="btnPersist">Запросити постійне сховище</button>
-<div id="persistStatus"></div>
-<div id="estimateStatus"></div>
-
-<h2>11. Звіт цілком</h2>
-<button id="btnCopyReport">Скопіювати весь звіт у буфер</button>
-<div id="reportCopyStatus"></div>
-<textarea id="reportText" readonly></textarea>
-
+<div id="app"></div>
 <script>
-(function () {
-  var report = document.getElementById('report');
-  var lines = []; // текстові рядки для підсумкового звіту
+// store.js — сховище BrainBod.
+//
+// Класичний скрипт (НЕ type="module"). Без залежностей, без зовнішніх запитів.
+// Підключається ПЕРЕД ui.js.
+//
+// Рішення, під які написано (docs/STATE.md → «Рішення, які вже прийняті»):
+//   * робочі дані — localStorage, тому основний API СИНХРОННИЙ;
+//   * IndexedDB — тільки під rolling backup (async, best-effort, ніколи не
+//     блокує збереження);
+//   * усі ключі з префіксом "bb:" — на github.io origin спільний для всіх
+//     проєктів акаунта;
+//   * кожен запис у try/catch, QuotaExceededError — окремий сценарій виходу
+//     без втрати історії.
+//
+// Форма стану — docs/DATA.md.
 
-  function addRow(status, title, detail) {
-    var cls = status === 'ok' ? 'ok' : (status === 'bad' ? 'bad' : 'warn');
-    var icon = status === 'ok' ? '✅' : (status === 'bad' ? '❌' : '⚠️');
-    var div = document.createElement('div');
-    div.className = 'row ' + cls;
-    div.textContent = icon + ' ' + title + ' — ' + detail;
-    report.appendChild(div);
-    lines.push(icon + ' ' + title + ' — ' + detail);
+(function (global) {
+  "use strict";
+
+  // ------------------------------------------------------------------
+  // Константи
+  // ------------------------------------------------------------------
+
+  var PREFIX = "bb:";
+  var DEFAULT_SCHEMA_VERSION = 1; // поточна версія схеми в КОДІ (docs/DATA.md)
+  var SCHEMA_VERSION = DEFAULT_SCHEMA_VERSION;
+
+  var K = {
+    state: PREFIX + "state",
+    meta: PREFIX + "meta",
+    sessionPrefix: PREFIX + "s_", // append-only копія сесії: bb:s_<id>
+    backupPrefix: PREFIX + "bk:"  // резервний rolling backup у localStorage
+  };
+
+  // Заміряна місткість localStorage на Chrome Android (docs/STATE.md,
+  // «Заміри й факти з перевірок»): 4.98 МБ.
+  var LS_CAPACITY_BYTES = Math.round(4.98 * 1024 * 1024); // 5221580
+  var LS_WARN_RATIO = 0.8; // з 80% зайнятого — попередження в UI
+
+  // Rolling backup: 3 знімки (docs/DATA.md → «Стратегія захисту даних», п.2).
+  var BACKUP_KEEP = 3;
+  // Резервний режим (немає IndexedDB): знімки їдять той самий бюджет
+  // localStorage, тому тримаємо один і тільки якщо він не завеликий.
+  var BACKUP_KEEP_LS = 1;
+  var BACKUP_LS_MAX_BYTES = 512 * 1024;
+
+  var IDB_NAME = "bb-backup"; // підмінюється в tests.html, щоб не чіпати бойові копії
+  var IDB_STORE = "snapshots";
+  var IDB_VERSION = 1;
+
+  // persist(): повторний запит не частіше ніж раз на 14 днів
+  // (docs/STATE.md: «перезапитати через 1–2 тижні реального використання»).
+  var PERSIST_RETRY_MS = 14 * 24 * 60 * 60 * 1000;
+
+  // Нагадування про експорт раз на 7 сесій (docs/DATA.md, п.4).
+  var EXPORT_REMINDER_EVERY = 7;
+
+  var FREE_SPACE_MAX_STEPS = 60; // запобіжник у циклі звільнення місця
+
+  // ------------------------------------------------------------------
+  // Внутрішній стан модуля
+  // ------------------------------------------------------------------
+
+  var storage = null;        // абстракція над localStorage (підмінна в тестах)
+  var storageChecked = false;
+  var cache = null;          // останній успішно збережений стан (об'єкт)
+  var initResult = null;     // результат останнього init()
+  var lock = null;           // { code, message } — писати заборонено
+  var blockedRaw = null;     // сирий рядок, який ми відмовились відкрити
+  var rescueJSON = null;     // JSON стану, який не вдалось записати
+  var errorHandlers = [];
+  var backupModeForced = "auto"; // auto | idb | ls | none
+  var persistImpl = null;    // підміна navigator.storage.persist у тестах
+
+  // ------------------------------------------------------------------
+  // Дрібні утиліти
+  // ------------------------------------------------------------------
+
+  function deepCopy(v) {
+    return v === undefined ? undefined : JSON.parse(JSON.stringify(v));
   }
 
-  function addHeader(text) {
-    var h = document.createElement('h2');
-    h.textContent = text;
-    report.appendChild(h);
-    lines.push('\n== ' + text + ' ==');
-  }
-
-  // 0. origin і адреса — звідки прогін
-  lines.push('== 0. Джерело прогону ==');
-  try {
-    lines.push('URL: ' + location.href);
-    lines.push('Origin: ' + location.origin);
-  } catch (e) {
-    lines.push('Помилка читання адреси: ' + e);
-  }
-
-  // 1. origin
-  addHeader('1. Origin');
-  try {
-    var origin = location.origin;
-    var proto = location.protocol;
-    if (origin === 'null' || origin === null) {
-      addRow('warn', 'Origin ізольований', 'location.origin = "null", protocol = ' + proto + '. Це головний ризик: сховище може бути ненадійним на file://.');
-    } else {
-      addRow('ok', 'Origin нормальний', 'location.origin = ' + origin + ', protocol = ' + proto);
+  // Канонічний JSON: ключі об'єктів відсортовані рекурсивно.
+  // Потрібен, щоб export → import → export збігався побайтово незалежно від
+  // порядку ключів, у якому дані потрапили в пам'ять.
+  function canonical(v) {
+    if (v === null || typeof v !== "object") {
+      return JSON.stringify(v === undefined ? null : v);
     }
-  } catch (e) {
-    addRow('bad', 'Помилка читання origin', String(e));
-  }
-
-  // 2. localStorage базово пише/читає
-  addHeader('2. localStorage базово');
-  var lsWorks = false;
-  try {
-    var testKey = '__probe_basic__';
-    var testVal = 'test-' + Date.now();
-    localStorage.setItem(testKey, testVal);
-    var readBack = localStorage.getItem(testKey);
-    if (readBack === testVal) {
-      lsWorks = true;
-      addRow('ok', 'localStorage пише і читає', 'Записано і прочитано значення, збіглося.');
-    } else {
-      addRow('bad', 'localStorage не збігається', 'Записано "' + testVal + '", прочитано "' + readBack + '"');
+    if (Array.isArray(v)) {
+      var items = [];
+      for (var i = 0; i < v.length; i++) {
+        items.push(canonical(v[i]));
+      }
+      return "[" + items.join(",") + "]";
     }
-    localStorage.removeItem(testKey);
-  } catch (e) {
-    addRow('bad', 'localStorage кинув помилку', String(e));
+    var keys = Object.keys(v).sort();
+    var parts = [];
+    for (var j = 0; j < keys.length; j++) {
+      var k = keys[j];
+      if (v[k] === undefined) continue;
+      if (typeof v[k] === "function") continue;
+      parts.push(JSON.stringify(k) + ":" + canonical(v[k]));
+    }
+    return "{" + parts.join(",") + "}";
   }
 
-  // 3. скільки влазить
-  addHeader('3. Обсяг localStorage');
-  if (!lsWorks) {
-    addRow('warn', 'Пропущено', 'localStorage не працює базово, тест обсягу не має сенсу.');
-  } else {
+  // localStorage у Chrome рахує UTF-16 code units × 2 байти.
+  function bytesOf(str) {
+    return (str ? String(str).length : 0) * 2;
+  }
+
+  function nowISO() {
+    return new Date().toISOString();
+  }
+
+  function appVersion() {
     try {
-      var chunkKeyPrefix = '__probe_quota_';
-      var chunk = new Array(100 * 1024 + 1).join('a'); // ~100KB
-      var count = 0;
-      var maxChunks = 300; // запобіжник, ~30МБ верхня межа проби
+      if (global.APP_VERSION) return String(global.APP_VERSION);
+      if (global.document) {
+        var m = global.document.querySelector('meta[name="app-version"]');
+        if (m && m.content && m.content.indexOf("__") !== 0) return m.content;
+      }
+    } catch (e) { /* ігноруємо */ }
+    return "0.0.0-dev";
+  }
+
+  function isQuotaError(e) {
+    if (!e) return false;
+    return (
+      e.name === "QuotaExceededError" ||
+      e.name === "NS_ERROR_DOM_QUOTA_REACHED" ||
+      e.code === 22 ||
+      e.code === 1014
+    );
+  }
+
+  function emit(err) {
+    for (var i = 0; i < errorHandlers.length; i++) {
+      try { errorHandlers[i](err); } catch (e) { /* обробник не має ламати запис */ }
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // Доступ до сховища (усе — через ці 4 функції, щоб тест міг підмінити)
+  // ------------------------------------------------------------------
+
+  function getStorage() {
+    if (storage) return storage;
+    if (storageChecked) return null;
+    storageChecked = true;
+    try {
+      var probeKey = PREFIX + "__probe";
+      global.localStorage.setItem(probeKey, "1");
+      global.localStorage.removeItem(probeKey);
+      storage = global.localStorage;
+    } catch (e) {
+      storage = null; // приватний режим / вимкнене сховище
+    }
+    return storage;
+  }
+
+  function lsGet(key) {
+    var s = getStorage();
+    if (!s) return null;
+    try {
+      return s.getItem(key);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Повертає { ok, code, error }. Ніколи не кидає.
+  function lsSetRaw(key, value) {
+    var s = getStorage();
+    if (!s) return { ok: false, code: "NO_STORAGE", error: null };
+    try {
+      s.setItem(key, value);
+      return { ok: true, code: null, error: null };
+    } catch (e) {
+      return {
+        ok: false,
+        code: isQuotaError(e) ? "QUOTA" : "WRITE_FAILED",
+        error: e
+      };
+    }
+  }
+
+  function lsDel(key) {
+    var s = getStorage();
+    if (!s) return false;
+    try {
+      s.removeItem(key);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function lsKeys(prefix) {
+    var s = getStorage();
+    var out = [];
+    if (!s) return out;
+    try {
+      for (var i = 0; i < s.length; i++) {
+        var k = s.key(i);
+        if (k === null || k === undefined) continue;
+        if (prefix && String(k).indexOf(prefix) !== 0) continue;
+        out.push(String(k));
+      }
+    } catch (e) { /* ігноруємо */ }
+    return out;
+  }
+
+  // ------------------------------------------------------------------
+  // Порожній стан (форма — docs/DATA.md)
+  // ------------------------------------------------------------------
+  //
+  // Стартове калібрування (§3 ALGO.md, звірено на кроці 6):
+  //   rirBias = 2.0  — «старт +2.0 для профілю новачок» (§3), а settings
+  //                    нижче стартують саме з experience: "novice".
+  //   trust   = 0.15 — не окрема константа, а та сама формула §3
+  //                    trust = clamp(0.15 + 0.15 × n_probes − 0.3 × noise, 0, 0.9)
+  //                    при n_probes = 0 (probes порожній) і noise = 0.
+  //                    Було 0.35 з ескізу docs/DATA.md — це суперечило §3:
+  //                    порожня історія отримувала довіру, зароблену пробами.
+  // Правити ці два числа — тільки тут, в одному місці.
+
+  function emptyState() {
+    return {
+      schemaVersion: SCHEMA_VERSION,
+      exportedAt: null,
+      appVersion: appVersion(),
+      settings: {
+        units: "kg",
+        plateStep: 1.25,
+        barWeight: 20,
+        dumbbells: [],
+        daysPerWeek: 4,
+        experience: "novice",
+        equipment: [],
+        restDefault: 120
+      },
+      exercises: [],
+      program: null,
+      sessions: [],
+      metrics: {
+        e1rm: {},
+        weeklyVolume: {},
+        fatigue: null,
+        plateau: {}
+      },
+      calibration: {
+        rirBias: 2.0,
+        trust: 0.15,
+        probes: []
+      },
+      log: []
+    };
+  }
+
+  var SECTIONS = [
+    "settings", "exercises", "program", "sessions",
+    "metrics", "calibration", "log"
+  ];
+
+  // Доводить об'єкт до повного набору секцій ВЕРХНЬОГО рівня.
+  // Всередину секцій не лізе навмисно: інакше export → import → export
+  // перестав би збігатись побайтово, а чужі дані домішувались би дефолтами.
+  function normalizeTop(s) {
+    var base = emptyState();
+    if (!s || typeof s !== "object") return base;
+    for (var i = 0; i < SECTIONS.length; i++) {
+      var name = SECTIONS[i];
+      if (!(name in s) || s[name] === undefined) {
+        s[name] = base[name];
+      }
+    }
+    if (!Array.isArray(s.exercises)) s.exercises = [];
+    if (!Array.isArray(s.sessions)) s.sessions = [];
+    if (!Array.isArray(s.log)) s.log = [];
+    if (!s.metrics || typeof s.metrics !== "object") s.metrics = base.metrics;
+    if (!s.calibration || typeof s.calibration !== "object") s.calibration = base.calibration;
+    if (!s.settings || typeof s.settings !== "object") s.settings = base.settings;
+    if (!("exportedAt" in s)) s.exportedAt = null;
+    if (!("appVersion" in s)) s.appVersion = appVersion();
+    return s;
+  }
+
+  // ------------------------------------------------------------------
+  // Мета-дані модуля (не частина стану застосунку)
+  // ------------------------------------------------------------------
+
+  function emptyMeta() {
+    return {
+      sessionsSaved: 0,
+      sessionsSinceExport: 0,
+      lastExportAt: null,
+      lastSaveAt: null,
+      backupSeq: 0,
+      persist: { granted: false, asks: 0, lastAskedAt: null, supported: null }
+    };
+  }
+
+  function readMeta() {
+    var raw = lsGet(K.meta);
+    if (!raw) return emptyMeta();
+    try {
+      var m = JSON.parse(raw);
+      var base = emptyMeta();
+      for (var k in base) {
+        if (!(k in m)) m[k] = base[k];
+      }
+      if (!m.persist || typeof m.persist !== "object") m.persist = base.persist;
+      return m;
+    } catch (e) {
+      return emptyMeta();
+    }
+  }
+
+  function writeMeta(m) {
+    return lsSetRaw(K.meta, JSON.stringify(m));
+  }
+
+  function patchMeta(fn) {
+    var m = readMeta();
+    fn(m);
+    writeMeta(m); // мета не критична: провал запису не робимо помилкою рівня даних
+    return m;
+  }
+
+  // ------------------------------------------------------------------
+  // Ключ append-only копії сесії
+  // ------------------------------------------------------------------
+
+  function sessionKey(id) {
+    var s = String(id);
+    if (s.indexOf("s_") === 0) s = s.slice(2);
+    return K.sessionPrefix + s; // bb:s_<id>, як у docs/DATA.md
+  }
+
+  function listSessionKeys() {
+    return lsKeys(K.sessionPrefix).sort();
+  }
+
+  // ------------------------------------------------------------------
+  // Міграції
+  // ------------------------------------------------------------------
+  //
+  // Поточна схема — 1, тому реальний реєстр порожній. Рушій нижче тримає
+  // повний ланцюг (v1→v2→v3→…): кожна міграція — окрема функція, ланцюг
+  // проганяється послідовно. Коли схема зміниться, сюди додається один
+  // запис { from, to, fn } і SCHEMA_VERSION росте на 1.
+  //
+  // Формат: { from: N, to: N+1, fn: function (s) { ...; return s; } }
+
+  var DEFAULT_MIGRATIONS = [];
+  var MIGRATIONS = DEFAULT_MIGRATIONS;
+
+  function registryTarget(reg) {
+    var t = 1;
+    for (var i = 0; i < reg.length; i++) {
+      if (reg[i].to > t) t = reg[i].to;
+    }
+    return t;
+  }
+
+  // Перевіряє, що ланцюг суцільний: 1 → 2 → … → target, без дір і дублів.
+  function validateRegistry(reg, target) {
+    reg = reg || MIGRATIONS;
+    target = target || (reg === MIGRATIONS ? SCHEMA_VERSION : registryTarget(reg));
+    var seen = {};
+    for (var i = 0; i < reg.length; i++) {
+      var m = reg[i];
+      if (typeof m.fn !== "function") {
+        return { ok: false, code: "NO_FN", at: m.from };
+      }
+      if (m.to !== m.from + 1) {
+        return { ok: false, code: "NOT_STEPWISE", at: m.from };
+      }
+      if (seen[m.from]) {
+        return { ok: false, code: "DUPLICATE", at: m.from };
+      }
+      seen[m.from] = true;
+    }
+    for (var v = 1; v < target; v++) {
+      if (!seen[v]) return { ok: false, code: "GAP", at: v };
+    }
+    return { ok: true, code: null, at: null };
+  }
+
+  // Проганяє стан по ланцюгу міграцій. Не мутує вхідний об'єкт.
+  // opts: { registry, target }
+  function migrate(state, opts) {
+    opts = opts || {};
+    var reg = opts.registry || MIGRATIONS;
+    var target = opts.target;
+    if (target === undefined || target === null) {
+      target = reg === MIGRATIONS ? SCHEMA_VERSION : registryTarget(reg);
+    }
+
+    var s = deepCopy(state);
+    var v = s.schemaVersion;
+    if (typeof v !== "number" || !isFinite(v)) {
+      v = 1; // немає версії — вважаємо найпершою, інакше даних не врятувати
+      s.schemaVersion = 1;
+    }
+
+    if (v > target) {
+      return {
+        ok: false, code: "SCHEMA_FUTURE", state: null,
+        applied: [], from: v, to: target
+      };
+    }
+
+    var applied = [];
+    var guard = 0;
+    while (v < target) {
+      if (++guard > reg.length + 1) {
+        return { ok: false, code: "MIGRATION_LOOP", state: null, applied: applied, from: v, to: target };
+      }
+      var m = null;
+      for (var i = 0; i < reg.length; i++) {
+        if (reg[i].from === v) { m = reg[i]; break; }
+      }
+      if (!m) {
+        return { ok: false, code: "NO_MIGRATION", state: null, applied: applied, from: v, to: target };
+      }
+      var next;
       try {
-        for (count = 0; count < maxChunks; count++) {
-          localStorage.setItem(chunkKeyPrefix + count, chunk);
-        }
-        addRow('warn', 'Досягнуто ліміт проби', 'Записано ' + (count * 100 / 1024).toFixed(2) + ' МБ без помилки квоти (зупинено запобіжником).');
-      } catch (quotaErr) {
-        var mb = (count * 100 / 1024).toFixed(2);
-        addRow('ok', 'Квота досягнута', 'Влізло приблизно ' + mb + ' МБ (' + count + ' чанків по 100 КБ) до помилки: ' + quotaErr.name);
+        next = m.fn(s);
+      } catch (e) {
+        return { ok: false, code: "MIGRATION_FAILED", state: null, applied: applied, from: v, to: target, error: e };
       }
-      // прибираємо за собою
-      for (var i = 0; i < count + 1; i++) {
-        try { localStorage.removeItem(chunkKeyPrefix + i); } catch (cleanupErr) {}
-      }
-      addRow('ok', 'Прибрано тестові ключі', 'Сховище очищено від __probe_quota_* ключів.');
-    } catch (e) {
-      addRow('bad', 'Помилка тесту обсягу', String(e));
+      s = next || s;
+      v = m.to;
+      s.schemaVersion = v;
+      applied.push({ from: m.from, to: m.to });
     }
+
+    return { ok: true, code: null, state: s, applied: applied, from: state.schemaVersion, to: target };
   }
 
-  // 4. виживання після перезапуску
-  addHeader('4. Виживання даних після перезапуску браузера');
-  var survKey = '__probe_survive_ts__';
-  try {
-    var existing = localStorage.getItem(survKey);
-    if (existing === null) {
-      var now = Date.now();
-      localStorage.setItem(survKey, String(now));
-      addRow('warn', 'Мітку щойно поставлено', 'Закрий браузер ПОВНІСТЮ (не просто вкладку) і відкрий цей файл знову, щоб перевірити виживання.');
-    } else {
-      var ts = parseInt(existing, 10);
-      var diffMs = Date.now() - ts;
-      var diffMin = Math.round(diffMs / 60000);
-      addRow('ok', 'Мітка на місці', 'Поставлена ' + diffMin + ' хв тому (' + new Date(ts).toLocaleString() + '). Дані пережили перезапуск.');
+  // ------------------------------------------------------------------
+  // Звільнення місця під час QuotaExceededError
+  // ------------------------------------------------------------------
+  //
+  // Порядок жертв (від найменш цінного):
+  //   1. резервні знімки в localStorage (в IndexedDB копія лишається);
+  //   2. append-only копії сесій, які ТОЧНО вже є в збереженому стані.
+  // Головний стан і мета не чіпаються ніколи.
+  //
+  // Ключове: «безпечні» id беруться з ОСТАННЬОГО ЗБЕРЕЖЕНОГО стану, а не з
+  // того, який ми зараз намагаємось записати. Інакше провал запису лишив би
+  // сесію взагалі без жодної копії.
+
+  function safeMirrorKeys() {
+    // Джерело істини — саме СХОВИЩЕ, а не кеш: кеш уже містить сесію, яку ми
+    // тільки намагаємось записати, і по ньому її копію можна було б видалити
+    // до того, як вона реально збережена.
+    var stored = null;
+    var raw = lsGet(K.state);
+    if (raw) {
+      try { stored = JSON.parse(raw); } catch (e) { stored = null; }
     }
-  } catch (e) {
-    addRow('bad', 'Помилка тесту виживання', String(e));
+    if (!stored || !Array.isArray(stored.sessions)) return [];
+    var have = {};
+    for (var i = 0; i < stored.sessions.length; i++) {
+      var s = stored.sessions[i];
+      if (s && s.id) have[sessionKey(s.id)] = true;
+    }
+    var keys = listSessionKeys().filter(function (k) { return have[k]; });
+    return keys; // відсортовані за ключем; id містять таймстамп → найстаріші перші
   }
-  var resetBtnDiv = document.createElement('div');
-  var resetBtn = document.createElement('button');
-  resetBtn.textContent = 'Скинути мітку';
-  resetBtn.onclick = function () {
-    try {
-      localStorage.removeItem(survKey);
-      alert('Мітку скинуто. Онови сторінку, щоб поставити нову.');
-    } catch (e) {
-      alert('Помилка скидання: ' + e);
-    }
-  };
-  resetBtnDiv.appendChild(resetBtn);
-  report.appendChild(resetBtnDiv);
 
-  // 5. Експорт файлу через Blob
-  addHeader('5. Експорт файлу (Blob + download)');
-  var exportDiv = document.createElement('div');
-  var exportBtn = document.createElement('button');
-  exportBtn.textContent = 'Завантажити тестовий .json';
-  exportBtn.onclick = function () {
-    try {
-      var data = { probe: true, ts: Date.now(), note: 'тестовий файл проби сховища' };
-      var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = 'probe-export.json';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
-    } catch (e) {
-      alert('Помилка експорту: ' + e);
-    }
-  };
-  exportDiv.appendChild(exportBtn);
-  var exportNote = document.createElement('p');
-  exportNote.textContent = 'Натисни, потім перевір самостійно (скрипт цього не бачить): чи з\'явився файл probe-export.json у завантаженнях.';
-  exportDiv.appendChild(exportNote);
-  report.appendChild(exportDiv);
+  function writeWithRecovery(key, value) {
+    var r = lsSetRaw(key, value);
+    if (r.ok || r.code !== "QUOTA") return r;
 
-  // 6. Копіювання в буфер
-  addHeader('6. Копіювання в буфер');
-  var clipDiv = document.createElement('div');
-  var clipBtn = document.createElement('button');
-  clipBtn.textContent = 'Тест копіювання в буфер';
-  var clipStatus = document.createElement('div');
-  clipBtn.onclick = function () {
-    var text = 'проба буфера ' + Date.now();
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function () {
-        clipStatus.textContent = '✅ Спрацював navigator.clipboard.writeText';
-      }).catch(function (err) {
-        clipStatus.textContent = '⚠️ navigator.clipboard відхилив: ' + err + '. Пробую фолбек...';
-        fallbackCopy(text, clipStatus);
-      });
-    } else {
-      clipStatus.textContent = '⚠️ navigator.clipboard недоступний. Пробую фолбек execCommand...';
-      fallbackCopy(text, clipStatus);
+    // Крок 1: викинути localStorage-бекапи.
+    var bk = lsKeys(K.backupPrefix);
+    if (bk.length) {
+      for (var i = 0; i < bk.length; i++) lsDel(bk[i]);
+      r = lsSetRaw(key, value);
+      if (r.ok) { r.freed = "backups"; return r; }
+      if (r.code !== "QUOTA") return r;
     }
-  };
-  function fallbackCopy(text, statusEl) {
-    try {
-      var ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.focus();
-      ta.select();
-      var ok = document.execCommand('copy');
-      document.body.removeChild(ta);
-      statusEl.textContent = ok ? '✅ Спрацював фолбек document.execCommand("copy")' : '❌ Жоден спосіб копіювання не спрацював';
-    } catch (e) {
-      statusEl.textContent = '❌ Фолбек кинув помилку: ' + e;
+
+    // Крок 2: по одній викидати дублікати сесій, які вже є в збереженому стані.
+    var mirrors = safeMirrorKeys().filter(function (k) { return k !== key; });
+    var freed = 0;
+    for (var j = 0; j < mirrors.length && j < FREE_SPACE_MAX_STEPS; j++) {
+      lsDel(mirrors[j]);
+      freed++;
+      r = lsSetRaw(key, value);
+      if (r.ok) { r.freed = "mirrors:" + freed; return r; }
+      if (r.code !== "QUOTA") return r;
     }
+
+    return r; // QUOTA і після звільнення — вище рівнем вирішують, що робити
   }
-  clipDiv.appendChild(clipBtn);
-  clipDiv.appendChild(clipStatus);
-  report.appendChild(clipDiv);
 
-  // 7. IndexedDB
-  addHeader('7. IndexedDB (запасний варіант)');
-  try {
-    if (!window.indexedDB) {
-      addRow('bad', 'IndexedDB відсутній', 'window.indexedDB не визначено в цьому середовищі.');
-    } else {
-      var req = indexedDB.open('probeDB', 1);
-      req.onupgradeneeded = function (e) {
-        var db = e.target.result;
-        if (!db.objectStoreNames.contains('probeStore')) {
-          db.createObjectStore('probeStore');
-        }
+  // ------------------------------------------------------------------
+  // init / load / save
+  // ------------------------------------------------------------------
+
+  function makeWarning(code, message, extra) {
+    var w = { code: code, message: message };
+    if (extra) {
+      for (var k in extra) w[k] = extra[k];
+    }
+    return w;
+  }
+
+  function setLock(code, message) {
+    lock = { code: code, message: message };
+  }
+
+  function init(opts) {
+    opts = opts || {};
+    lock = null;
+    blockedRaw = null;
+    cache = null;
+
+    var s = getStorage();
+    if (!s) {
+      cache = emptyState();
+      initResult = {
+        ok: false,
+        status: "unavailable",
+        state: cache,
+        warning: makeWarning(
+          "NO_STORAGE",
+          "Сховище браузера недоступне — дані НЕ зберігаються. Експортуйте JSON вручну."
+        )
       };
-      req.onsuccess = function (e) {
-        var db = e.target.result;
+      return initResult;
+    }
+
+    var raw = lsGet(K.state);
+    if (raw === null || raw === undefined || raw === "") {
+      cache = null;
+      initResult = { ok: true, status: "empty", state: emptyState(), warning: null };
+      return initResult;
+    }
+
+    var parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (e) {
+      blockedRaw = raw;
+      setLock("CORRUPT", "Збережені дані пошкоджені.");
+      initResult = {
+        ok: false,
+        status: "corrupt",
+        state: null,
+        warning: makeWarning(
+          "CORRUPT",
+          "Збережені дані не читаються. Запис заблоковано, щоб не затерти залишки. " +
+          "Збережіть сирий вміст і спробуйте відновитись із резервної копії."
+        )
+      };
+      return initResult;
+    }
+
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      blockedRaw = raw;
+      setLock("CORRUPT", "Збережені дані мають несподівану форму.");
+      initResult = {
+        ok: false, status: "corrupt", state: null,
+        warning: makeWarning("CORRUPT", "Збережені дані мають несподівану форму. Запис заблоковано.")
+      };
+      return initResult;
+    }
+
+    var stored = parsed.schemaVersion;
+
+    // Версія у сховищі ВИЩА за версію коду — запустилась стара версія
+    // застосунку. Не відкривати молчки (docs/DATA.md → «Міграції»).
+    if (typeof stored === "number" && stored > SCHEMA_VERSION) {
+      blockedRaw = raw;
+      setLock("SCHEMA_FUTURE", "Дані новішої версії застосунку.");
+      initResult = {
+        ok: false,
+        status: "future",
+        state: null,
+        warning: makeWarning(
+          "SCHEMA_FUTURE",
+          "Дані збережені новішою версією застосунку (схема " + stored +
+          ", ця версія розуміє " + SCHEMA_VERSION + "). Оновіть застосунок. " +
+          "Запис заблоковано, щоб не зіпсувати дані.",
+          { storedVersion: stored, currentVersion: SCHEMA_VERSION }
+        )
+      };
+      return initResult;
+    }
+
+    var needMigration = !(typeof stored === "number" && stored === SCHEMA_VERSION);
+
+    if (!needMigration) {
+      cache = normalizeTop(parsed);
+      initResult = { ok: true, status: "ok", state: cache, warning: null };
+      return initResult;
+    }
+
+    // Перед міграцією — знімок «як було» (best-effort, не блокує).
+    if (opts.backupBeforeMigrate !== false) {
+      backupPush(parsed, { reason: "pre-migration" });
+    }
+
+    var res = migrate(parsed);
+    if (!res.ok) {
+      blockedRaw = raw;
+      setLock("MIGRATION", "Не вдалось оновити схему даних.");
+      initResult = {
+        ok: false,
+        status: "corrupt",
+        state: null,
+        warning: makeWarning(
+          "MIGRATION_FAILED",
+          "Не вдалось оновити схему даних (" + res.code + ", версія " + res.from + "). " +
+          "Запис заблоковано. Дані на місці — зробіть експорт.",
+          { storedVersion: res.from, currentVersion: SCHEMA_VERSION, reason: res.code }
+        )
+      };
+      return initResult;
+    }
+
+    cache = normalizeTop(res.state);
+    var saved = save(cache, { skipBackup: true });
+    initResult = {
+      ok: true,
+      status: "migrated",
+      state: cache,
+      applied: res.applied,
+      warning: saved.ok ? null : makeWarning(
+        "MIGRATION_NOT_SAVED",
+        "Схема оновлена в пам'яті, але записати не вдалось (" + saved.code + ")."
+      )
+    };
+    return initResult;
+  }
+
+  function ensureInit() {
+    if (!initResult) init();
+    return initResult;
+  }
+
+  function currentState() {
+    ensureInit();
+    if (!cache) {
+      var raw = lsGet(K.state);
+      if (raw) {
         try {
-          var tx = db.transaction('probeStore', 'readwrite');
-          var store = tx.objectStore('probeStore');
-          var val = 'idb-test-' + Date.now();
-          store.put(val, 'probeKey');
-          tx.oncomplete = function () {
-            var tx2 = db.transaction('probeStore', 'readonly');
-            var store2 = tx2.objectStore('probeStore');
-            var getReq = store2.get('probeKey');
-            getReq.onsuccess = function () {
-              if (getReq.result === val) {
-                addRow('ok', 'IndexedDB працює', 'Запис і читання значення пройшли успішно.');
-              } else {
-                addRow('bad', 'IndexedDB не збігається', 'Записано "' + val + '", прочитано "' + getReq.result + '"');
-              }
-              refreshReportText();
-            };
-            getReq.onerror = function () {
-              addRow('bad', 'IndexedDB помилка читання', String(getReq.error));
-              refreshReportText();
-            };
-          };
-        } catch (txErr) {
-          addRow('bad', 'IndexedDB помилка транзакції', String(txErr));
-          refreshReportText();
+          cache = normalizeTop(JSON.parse(raw));
+        } catch (e) {
+          cache = emptyState();
+        }
+      } else {
+        cache = emptyState();
+      }
+    }
+    return cache;
+  }
+
+  function load() {
+    return deepCopy(currentState());
+  }
+
+  // Основний запис. Синхронний. Повертає { ok, code, bytes }.
+  function save(state, opts) {
+    opts = opts || {};
+
+    if (lock && !opts.force) {
+      var blocked = { ok: false, code: lock.code, message: lock.message };
+      emit(blocked);
+      return blocked;
+    }
+
+    var s = state || cache || emptyState();
+    s = normalizeTop(s);
+    s.schemaVersion = SCHEMA_VERSION;
+    s.appVersion = appVersion();
+
+    var json = canonical(s);
+    var r = writeWithRecovery(K.state, json);
+
+    if (r.ok) {
+      cache = s;
+      rescueJSON = null;
+      patchMeta(function (m) {
+        m.lastSaveAt = nowISO();
+      });
+      return { ok: true, code: null, bytes: bytesOf(json), freed: r.freed || null };
+    }
+
+    // Запис не пройшов. localStorage.setItem атомарний: попереднє значення
+    // на місці, тому історія НЕ втрачена. Далі — сигнал нагору + аварійний
+    // JSON для кнопки «скопіювати в буфер» (docs/DATA.md, стратегія п.1, 5).
+    cache = s; // тримаємо в пам'яті, щоб UI було що врятувати
+    rescueJSON = json;
+    var err = {
+      ok: false,
+      code: r.code,
+      message: r.code === "QUOTA"
+        ? "Сховище переповнене — дані НЕ збережені. Історія на місці, але нові записи не проходять. Експортуйте JSON."
+        : "Не вдалось записати дані в сховище. Історія на місці. Експортуйте JSON.",
+      bytes: bytesOf(json),
+      error: r.error || null
+    };
+    emit(err);
+    return err;
+  }
+
+  // ------------------------------------------------------------------
+  // Секційні аксесори
+  // ------------------------------------------------------------------
+
+  function getSection(name) {
+    return deepCopy(currentState()[name]);
+  }
+
+  function setSection(name, value, opts) {
+    var s = currentState();
+    s[name] = deepCopy(value);
+    return save(s, opts);
+  }
+
+  function resetSection(name, opts) {
+    var s = currentState();
+    s[name] = emptyState()[name];
+    return save(s, opts);
+  }
+
+  // --- сесії ---
+
+  function getSessions() { return getSection("sessions"); }
+
+  function getSession(id) {
+    var list = currentState().sessions || [];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] && list[i].id === id) return deepCopy(list[i]);
+    }
+    return null;
+  }
+
+  // Додає сесію: спершу окрема append-only копія (маленька), потім головний
+  // стан. Порядок навмисний — якщо головний запис упреться в квоту, сесія
+  // все одно вже лежить окремим ключем.
+  function appendSession(session, opts) {
+    opts = opts || {};
+    if (!session || !session.id) {
+      return { ok: false, code: "BAD_SESSION", message: "Сесія без id." };
+    }
+    if (lock && !opts.force) {
+      var blocked = { ok: false, code: lock.code, message: lock.message };
+      emit(blocked);
+      return blocked;
+    }
+
+    var mirror = writeWithRecovery(sessionKey(session.id), canonical(session));
+
+    var s = currentState();
+    if (!Array.isArray(s.sessions)) s.sessions = [];
+    var replaced = false;
+    for (var i = 0; i < s.sessions.length; i++) {
+      if (s.sessions[i] && s.sessions[i].id === session.id) {
+        s.sessions[i] = deepCopy(session);
+        replaced = true;
+        break;
+      }
+    }
+    if (!replaced) s.sessions.push(deepCopy(session));
+
+    var res = save(s, opts);
+    res.mirror = mirror.ok;
+
+    if (res.ok && !replaced) {
+      patchMeta(function (m) {
+        m.sessionsSaved = (m.sessionsSaved || 0) + 1;
+        m.sessionsSinceExport = (m.sessionsSinceExport || 0) + 1;
+      });
+      if (opts.skipBackup !== true) {
+        backupPush(s, { reason: "session" });
+      }
+      if (opts.skipPersist !== true) {
+        persistAfterSession();
+      }
+    }
+    return res;
+  }
+
+  function deleteSession(id, opts) {
+    var s = currentState();
+    var before = (s.sessions || []).length;
+    s.sessions = (s.sessions || []).filter(function (x) {
+      return !x || x.id !== id;
+    });
+    var res = save(s, opts);
+    if (res.ok && s.sessions.length < before) {
+      lsDel(sessionKey(id));
+    }
+    return res;
+  }
+
+  // Сесії, які лежать окремими ключами, але зникли з головного стану
+  // (наслідок пошкодження головного об'єкта). Шлях відновлення.
+  function orphanSessions() {
+    var s = currentState();
+    var have = {};
+    var list = (s && s.sessions) || [];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] && list[i].id) have[sessionKey(list[i].id)] = true;
+    }
+    var out = [];
+    var keys = listSessionKeys();
+    for (var j = 0; j < keys.length; j++) {
+      if (have[keys[j]]) continue;
+      var raw = lsGet(keys[j]);
+      if (!raw) continue;
+      try { out.push(JSON.parse(raw)); } catch (e) { /* пропускаємо биту копію */ }
+    }
+    return out;
+  }
+
+  // --- журнал ---
+
+  function appendLog(entry, opts) {
+    var s = currentState();
+    if (!Array.isArray(s.log)) s.log = [];
+    var e = deepCopy(entry) || {};
+    if (!e.ts) e.ts = Date.now();
+    s.log.push(e);
+    return save(s, opts);
+  }
+
+  // ------------------------------------------------------------------
+  // Export / Import
+  // ------------------------------------------------------------------
+
+  function exportObject(opts) {
+    opts = opts || {};
+    var s = deepCopy(currentState());
+    s = normalizeTop(s);
+    s.schemaVersion = SCHEMA_VERSION;
+    s.appVersion = opts.appVersion || appVersion();
+    s.exportedAt = opts.at || nowISO();
+    return s;
+  }
+
+  function exportJSON(opts) {
+    return canonical(exportObject(opts));
+  }
+
+  function exportFilename(at) {
+    var d = at ? new Date(at) : new Date();
+    function p(n) { return (n < 10 ? "0" : "") + n; }
+    return "brainbod-" + d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" +
+      p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes()) + ".json";
+  }
+
+  // Канал 1: файл через Blob + <a download>. Перевірено на Chrome Android.
+  function downloadFile(opts) {
+    opts = opts || {};
+    var json = opts.json || exportJSON(opts);
+    var name = opts.filename || exportFilename(opts.at);
+    try {
+      var blob = new Blob([json], { type: "application/json" });
+      var url = URL.createObjectURL(blob);
+      var a = global.document.createElement("a");
+      a.href = url;
+      a.download = name;
+      a.style.display = "none";
+      global.document.body.appendChild(a);
+      a.click();
+      setTimeout(function () {
+        try {
+          global.document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        } catch (e) { /* ігноруємо */ }
+      }, 0);
+      markExported();
+      return { ok: true, filename: name, bytes: bytesOf(json) };
+    } catch (e) {
+      return { ok: false, code: "DOWNLOAD_FAILED", error: e };
+    }
+  }
+
+  // Канал 2: буфер обміну. Перевірено на Chrome Android; на iOS це головний
+  // канал, бо файл приходить із генеричним ім'ям без розширення.
+  function copyToClipboard(opts) {
+    opts = opts || {};
+    var json = opts.json || exportJSON(opts);
+    return new Promise(function (resolve) {
+      function fallback() {
+        try {
+          var ta = global.document.createElement("textarea");
+          ta.value = json;
+          ta.setAttribute("readonly", "");
+          ta.style.position = "fixed";
+          ta.style.top = "-1000px";
+          global.document.body.appendChild(ta);
+          ta.select();
+          ta.setSelectionRange(0, json.length);
+          var ok = global.document.execCommand("copy");
+          global.document.body.removeChild(ta);
+          if (ok) markExported();
+          resolve({ ok: !!ok, method: "execCommand", bytes: bytesOf(json) });
+        } catch (e) {
+          resolve({ ok: false, code: "CLIPBOARD_FAILED", error: e });
+        }
+      }
+      try {
+        if (global.navigator && global.navigator.clipboard && global.navigator.clipboard.writeText) {
+          global.navigator.clipboard.writeText(json).then(function () {
+            markExported();
+            resolve({ ok: true, method: "clipboard", bytes: bytesOf(json) });
+          }, fallback);
+          return;
+        }
+      } catch (e) { /* падаємо у fallback */ }
+      fallback();
+    });
+  }
+
+  function markExported() {
+    patchMeta(function (m) {
+      m.lastExportAt = nowISO();
+      m.sessionsSinceExport = 0;
+    });
+  }
+
+  function needsExportReminder() {
+    var m = readMeta();
+    return (m.sessionsSinceExport || 0) >= EXPORT_REMINDER_EVERY;
+  }
+
+  // Аварійний JSON: стан, який не вдалось записати.
+  function getRescueJSON() {
+    return rescueJSON || exportJSON();
+  }
+
+  function importJSON(text, opts) {
+    opts = opts || {};
+
+    var parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch (e) {
+      return { ok: false, code: "BAD_JSON", message: "Файл не читається як JSON.", error: e };
+    }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return { ok: false, code: "NOT_STATE", message: "Це не файл стану BrainBod." };
+    }
+    if (!("schemaVersion" in parsed)) {
+      return { ok: false, code: "NOT_STATE", message: "У файлі немає schemaVersion." };
+    }
+
+    var stored = parsed.schemaVersion;
+    if (typeof stored === "number" && stored > SCHEMA_VERSION) {
+      return {
+        ok: false,
+        code: "SCHEMA_FUTURE",
+        message: "Файл збережений новішою версією застосунку (схема " + stored +
+          ", ця версія розуміє " + SCHEMA_VERSION + "). Оновіть застосунок.",
+        storedVersion: stored,
+        currentVersion: SCHEMA_VERSION
+      };
+    }
+
+    var res = migrate(parsed);
+    if (!res.ok) {
+      return {
+        ok: false, code: res.code,
+        message: "Не вдалось привести файл до поточної схеми (" + res.code + ").",
+        storedVersion: res.from
+      };
+    }
+
+    // Знімок того, що затираємо (best-effort, не блокує імпорт).
+    if (opts.skipBackup !== true && cache) {
+      backupPush(cache, { reason: "pre-import" });
+    }
+
+    var next = normalizeTop(res.state);
+    lock = null;
+    blockedRaw = null;
+    cache = next;
+
+    var saved = save(next, { skipBackup: true, force: true });
+    if (!saved.ok) return saved;
+
+    if (opts.rebuildMirrors !== false) {
+      rebuildMirrors(next);
+    }
+    patchMeta(function (m) {
+      m.sessionsSaved = (next.sessions || []).length;
+      m.sessionsSinceExport = 0;
+    });
+
+    initResult = { ok: true, status: res.applied.length ? "migrated" : "ok", state: next, warning: null };
+    return { ok: true, code: null, state: deepCopy(next), applied: res.applied };
+  }
+
+  // Відновлює append-only копії сесій після імпорту. Best-effort: якщо місця
+  // не вистачило — головний стан уже збережений, це не помилка імпорту.
+  function rebuildMirrors(state) {
+    var list = (state && state.sessions) || [];
+    var written = 0;
+    for (var i = 0; i < list.length; i++) {
+      var s = list[i];
+      if (!s || !s.id) continue;
+      var r = lsSetRaw(sessionKey(s.id), canonical(s));
+      if (r.ok) written++;
+      else if (r.code === "QUOTA") break;
+    }
+    return written;
+  }
+
+  // ------------------------------------------------------------------
+  // clearAll — тільки свої ключі. На github.io origin спільний, чуже не чіпаємо.
+  // ------------------------------------------------------------------
+
+  function clearAll(opts) {
+    opts = opts || {};
+    var keys = lsKeys(PREFIX);
+    var removed = 0;
+    for (var i = 0; i < keys.length; i++) {
+      if (opts.keepBackups && keys[i].indexOf(K.backupPrefix) === 0) continue;
+      if (opts.keepMeta && keys[i] === K.meta) continue;
+      if (lsDel(keys[i])) removed++;
+    }
+    cache = null;
+    initResult = null;
+    lock = null;
+    blockedRaw = null;
+    rescueJSON = null;
+    return { ok: true, removed: removed };
+  }
+
+  // ------------------------------------------------------------------
+  // navigator.storage.persist()
+  // ------------------------------------------------------------------
+  //
+  // Запитується НЕ на старті, а після першої збереженої сесії: Chrome видає
+  // постійне сховище за накопиченим engagement, а не на першу вимогу. На
+  // замірі (docs/STATE.md) повернув false — це НЕ помилка, просто ще рано.
+  // Тому запит повторюваний: раз на 14 днів, поки не granted.
+
+  function persistSupported() {
+    if (persistImpl) return true;
+    try {
+      return !!(global.navigator && global.navigator.storage &&
+        typeof global.navigator.storage.persist === "function");
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function persistStatus() {
+    var m = readMeta();
+    return {
+      supported: persistSupported(),
+      granted: !!(m.persist && m.persist.granted),
+      asks: (m.persist && m.persist.asks) || 0,
+      lastAskedAt: (m.persist && m.persist.lastAskedAt) || null
+    };
+  }
+
+  function persistIsPersisted() {
+    return new Promise(function (resolve) {
+      try {
+        if (global.navigator && global.navigator.storage &&
+          typeof global.navigator.storage.persisted === "function") {
+          global.navigator.storage.persisted().then(
+            function (v) { resolve(!!v); },
+            function () { resolve(false); }
+          );
+          return;
+        }
+      } catch (e) { /* ігноруємо */ }
+      resolve(false);
+    });
+  }
+
+  function persistRequest(opts) {
+    opts = opts || {};
+    return new Promise(function (resolve) {
+      var st = persistStatus();
+      if (!st.supported) {
+        resolve({ ok: true, granted: false, supported: false, skipped: true, reason: "unsupported" });
+        return;
+      }
+      if (st.granted && !opts.force) {
+        resolve({ ok: true, granted: true, supported: true, skipped: true, reason: "already" });
+        return;
+      }
+      if (!opts.force && st.lastAskedAt) {
+        var age = Date.now() - new Date(st.lastAskedAt).getTime();
+        if (isFinite(age) && age < PERSIST_RETRY_MS) {
+          resolve({ ok: true, granted: false, supported: true, skipped: true, reason: "cooldown", nextInMs: PERSIST_RETRY_MS - age });
+          return;
+        }
+      }
+      var done = function (granted) {
+        patchMeta(function (m) {
+          m.persist.supported = true;
+          m.persist.granted = !!granted;
+          m.persist.asks = (m.persist.asks || 0) + 1;
+          m.persist.lastAskedAt = nowISO();
+        });
+        // granted === false не вважається помилкою: Chrome видає постійне
+        // сховище пізніше, за накопиченим engagement.
+        resolve({ ok: true, granted: !!granted, supported: true, skipped: false, reason: null });
+      };
+      try {
+        var p = persistImpl ? persistImpl() : global.navigator.storage.persist();
+        Promise.resolve(p).then(done, function () { done(false); });
+      } catch (e) {
+        done(false);
+      }
+    });
+  }
+
+  function persistAfterSession() {
+    var m = readMeta();
+    if ((m.sessionsSaved || 0) < 1) {
+      return Promise.resolve({ ok: true, granted: false, skipped: true, reason: "no-sessions" });
+    }
+    return persistRequest();
+  }
+
+  // ------------------------------------------------------------------
+  // Місткість
+  // ------------------------------------------------------------------
+
+  function usage() {
+    var keys = lsKeys(PREFIX);
+    var bytes = 0;
+    for (var i = 0; i < keys.length; i++) {
+      var v = lsGet(keys[i]);
+      bytes += bytesOf(keys[i]) + bytesOf(v);
+    }
+    return {
+      keys: keys.length,
+      bytes: bytes,
+      capacity: LS_CAPACITY_BYTES,
+      ratio: bytes / LS_CAPACITY_BYTES,
+      warn: bytes / LS_CAPACITY_BYTES >= LS_WARN_RATIO
+    };
+  }
+
+  function estimate() {
+    return new Promise(function (resolve) {
+      try {
+        if (global.navigator && global.navigator.storage &&
+          typeof global.navigator.storage.estimate === "function") {
+          global.navigator.storage.estimate().then(
+            function (e) { resolve({ ok: true, quota: e.quota, usage: e.usage }); },
+            function () { resolve({ ok: false }); }
+          );
+          return;
+        }
+      } catch (e) { /* ігноруємо */ }
+      resolve({ ok: false });
+    });
+  }
+
+  // ------------------------------------------------------------------
+  // Rolling backup — IndexedDB (резерв: localStorage)
+  // ------------------------------------------------------------------
+
+  function idbAvailable() {
+    if (backupModeForced === "ls" || backupModeForced === "none") return false;
+    try { return !!global.indexedDB; } catch (e) { return false; }
+  }
+
+  function idbOpen() {
+    return new Promise(function (resolve, reject) {
+      if (!idbAvailable()) { reject(new Error("IndexedDB недоступний")); return; }
+      var req;
+      try {
+        req = global.indexedDB.open(IDB_NAME, IDB_VERSION);
+      } catch (e) { reject(e); return; }
+      req.onupgradeneeded = function () {
+        var db = req.result;
+        if (!db.objectStoreNames.contains(IDB_STORE)) {
+          db.createObjectStore(IDB_STORE, { keyPath: "seq", autoIncrement: true });
         }
       };
-      req.onerror = function () {
-        addRow('bad', 'IndexedDB не відкрився', String(req.error));
-        refreshReportText();
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error || new Error("IndexedDB open error")); };
+      req.onblocked = function () { reject(new Error("IndexedDB blocked")); };
+    });
+  }
+
+  function makeSnapshot(state, info) {
+    var src = state || cache || currentState();
+    var json = canonical(src);
+    return {
+      at: nowISO(),
+      reason: (info && info.reason) || "manual",
+      schemaVersion: src && src.schemaVersion,
+      appVersion: appVersion(),
+      sessions: (src && src.sessions && src.sessions.length) || 0,
+      bytes: bytesOf(json),
+      json: json
+    };
+  }
+
+  // Додає знімок і одразу підрізає до BACKUP_KEEP — усе в одній транзакції.
+  function backupPushIDB(snap) {
+    return idbOpen().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx, st, seq = null;
+        try {
+          tx = db.transaction(IDB_STORE, "readwrite");
+          st = tx.objectStore(IDB_STORE);
+        } catch (e) { reject(e); return; }
+
+        var addReq = st.add(snap);
+        addReq.onsuccess = function () {
+          seq = addReq.result;
+          var keys = [];
+          var cur = st.openKeyCursor(); // autoIncrement → зростання = від старих
+          cur.onsuccess = function () {
+            var c = cur.result;
+            if (c) { keys.push(c.primaryKey); c.continue(); return; }
+            var excess = keys.length - BACKUP_KEEP;
+            for (var i = 0; i < excess; i++) st.delete(keys[i]);
+          };
+        };
+        tx.oncomplete = function () {
+          try { db.close(); } catch (e) { /* ігноруємо */ }
+          resolve({ ok: true, seq: seq, store: "idb", keep: BACKUP_KEEP });
+        };
+        tx.onerror = tx.onabort = function () {
+          try { db.close(); } catch (e) { /* ігноруємо */ }
+          reject(tx.error || new Error("IndexedDB tx error"));
+        };
+      });
+    });
+  }
+
+  function backupPushLS(snap) {
+    if (backupModeForced === "none") {
+      return { ok: false, code: "DISABLED", store: "none" };
+    }
+    if (snap.bytes > BACKUP_LS_MAX_BYTES) {
+      return { ok: false, code: "TOO_BIG", store: "ls", bytes: snap.bytes };
+    }
+    var m = patchMeta(function (mm) { mm.backupSeq = (mm.backupSeq || 0) + 1; });
+    var seq = m.backupSeq;
+    var key = K.backupPrefix + seq;
+    var r = lsSetRaw(key, JSON.stringify(snap));
+    if (!r.ok) return { ok: false, code: r.code, store: "ls" };
+
+    var keys = lsKeys(K.backupPrefix).sort(function (a, b) {
+      return backupSeqOf(a) - backupSeqOf(b);
+    });
+    var excess = keys.length - BACKUP_KEEP_LS;
+    for (var i = 0; i < excess; i++) lsDel(keys[i]);
+    return { ok: true, seq: seq, store: "ls", keep: BACKUP_KEEP_LS };
+  }
+
+  function backupSeqOf(key) {
+    return parseInt(key.slice(K.backupPrefix.length), 10) || 0;
+  }
+
+  function backupPush(state, info) {
+    var snap;
+    try {
+      snap = makeSnapshot(state, info);
+    } catch (e) {
+      return Promise.resolve({ ok: false, code: "SNAPSHOT_FAILED", error: e });
+    }
+    if (!idbAvailable()) {
+      return Promise.resolve(backupPushLS(snap));
+    }
+    return backupPushIDB(snap).catch(function () {
+      return backupPushLS(snap); // IndexedDB відвалився — не лишаємось без копії
+    });
+  }
+
+  function backupListIDB() {
+    return idbOpen().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx, st, out = [];
+        try {
+          tx = db.transaction(IDB_STORE, "readonly");
+          st = tx.objectStore(IDB_STORE);
+        } catch (e) { reject(e); return; }
+        var cur = st.openCursor();
+        cur.onsuccess = function () {
+          var c = cur.result;
+          if (c) {
+            var v = c.value;
+            out.push({
+              seq: c.primaryKey, at: v.at, reason: v.reason,
+              bytes: v.bytes, sessions: v.sessions,
+              schemaVersion: v.schemaVersion, store: "idb"
+            });
+            c.continue();
+          }
+        };
+        tx.oncomplete = function () {
+          try { db.close(); } catch (e) { /* ігноруємо */ }
+          resolve(out);
+        };
+        tx.onerror = tx.onabort = function () {
+          try { db.close(); } catch (e) { /* ігноруємо */ }
+          reject(tx.error || new Error("IndexedDB tx error"));
+        };
+      });
+    });
+  }
+
+  function backupListLS() {
+    var keys = lsKeys(K.backupPrefix).sort(function (a, b) {
+      return backupSeqOf(a) - backupSeqOf(b);
+    });
+    var out = [];
+    for (var i = 0; i < keys.length; i++) {
+      var raw = lsGet(keys[i]);
+      if (!raw) continue;
+      try {
+        var v = JSON.parse(raw);
+        out.push({
+          seq: backupSeqOf(keys[i]), at: v.at, reason: v.reason,
+          bytes: v.bytes, sessions: v.sessions,
+          schemaVersion: v.schemaVersion, store: "ls"
+        });
+      } catch (e) { /* пропускаємо биту копію */ }
+    }
+    return out;
+  }
+
+  function backupList() {
+    if (!idbAvailable()) return Promise.resolve(backupListLS());
+    return backupListIDB().catch(function () { return backupListLS(); });
+  }
+
+  function backupGet(seq) {
+    if (!idbAvailable()) {
+      var raw = lsGet(K.backupPrefix + seq);
+      if (!raw) return Promise.resolve(null);
+      try { return Promise.resolve(JSON.parse(raw)); }
+      catch (e) { return Promise.resolve(null); }
+    }
+    return idbOpen().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx, st;
+        try {
+          tx = db.transaction(IDB_STORE, "readonly");
+          st = tx.objectStore(IDB_STORE);
+        } catch (e) { reject(e); return; }
+        var req = st.get(seq);
+        var val = null;
+        req.onsuccess = function () { val = req.result || null; };
+        tx.oncomplete = function () {
+          try { db.close(); } catch (e) { /* ігноруємо */ }
+          resolve(val);
+        };
+        tx.onerror = tx.onabort = function () {
+          try { db.close(); } catch (e) { /* ігноруємо */ }
+          reject(tx.error || new Error("IndexedDB tx error"));
+        };
+      });
+    }).catch(function () { return null; });
+  }
+
+  function backupRestore(seq) {
+    return backupGet(seq).then(function (snap) {
+      if (!snap || !snap.json) {
+        return { ok: false, code: "NOT_FOUND" };
+      }
+      return importJSON(snap.json, { skipBackup: false });
+    });
+  }
+
+  function backupClear() {
+    var lsKeysList = lsKeys(K.backupPrefix);
+    for (var i = 0; i < lsKeysList.length; i++) lsDel(lsKeysList[i]);
+    if (!idbAvailable()) return Promise.resolve({ ok: true, store: "ls" });
+    return idbOpen().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx, st;
+        try {
+          tx = db.transaction(IDB_STORE, "readwrite");
+          st = tx.objectStore(IDB_STORE);
+        } catch (e) { reject(e); return; }
+        st.clear();
+        tx.oncomplete = function () {
+          try { db.close(); } catch (e) { /* ігноруємо */ }
+          resolve({ ok: true, store: "idb" });
+        };
+        tx.onerror = tx.onabort = function () {
+          try { db.close(); } catch (e) { /* ігноруємо */ }
+          reject(tx.error || new Error("IndexedDB tx error"));
+        };
+      });
+    }).catch(function () { return { ok: false, code: "IDB_FAILED" }; });
+  }
+
+  // ------------------------------------------------------------------
+  // Публічний API
+  // ------------------------------------------------------------------
+
+  var Store = {
+    PREFIX: PREFIX,
+    SCHEMA_VERSION: SCHEMA_VERSION,
+    KEYS: K,
+
+    init: init,
+    load: load,
+    save: save,
+    clearAll: clearAll,
+
+    // сигнали й блокування
+    status: function () { return ensureInit(); },
+    isLocked: function () { return !!lock; },
+    lockInfo: function () { return lock ? { code: lock.code, message: lock.message } : null; },
+    getBlockedRaw: function () { return blockedRaw; },
+    unlock: function (opts) {
+      if (!opts || opts.confirm !== true) return { ok: false, code: "NEED_CONFIRM" };
+      lock = null;
+      return { ok: true };
+    },
+    onError: function (fn) {
+      if (typeof fn === "function") errorHandlers.push(fn);
+      return function () {
+        errorHandlers = errorHandlers.filter(function (f) { return f !== fn; });
+      };
+    },
+
+    // секції стану
+    getSettings: function () { return getSection("settings"); },
+    setSettings: function (v, o) { return setSection("settings", v, o); },
+    getExercises: function () { return getSection("exercises"); },
+    setExercises: function (v, o) { return setSection("exercises", v, o); },
+    getProgram: function () { return getSection("program"); },
+    setProgram: function (v, o) { return setSection("program", v, o); },
+    getMetrics: function () { return getSection("metrics"); },
+    setMetrics: function (v, o) { return setSection("metrics", v, o); },
+    getCalibration: function () { return getSection("calibration"); },
+    setCalibration: function (v, o) { return setSection("calibration", v, o); },
+    getLog: function () { return getSection("log"); },
+    setLog: function (v, o) { return setSection("log", v, o); },
+    appendLog: appendLog,
+    resetSection: resetSection,
+
+    // сесії
+    getSessions: getSessions,
+    getSession: getSession,
+    appendSession: appendSession,
+    deleteSession: deleteSession,
+    orphanSessions: orphanSessions,
+
+    // export / import
+    exportObject: exportObject,
+    exportJSON: exportJSON,
+    exportFilename: exportFilename,
+    downloadFile: downloadFile,
+    copyToClipboard: copyToClipboard,
+    importJSON: importJSON,
+    getRescueJSON: getRescueJSON,
+    needsExportReminder: needsExportReminder,
+    markExported: markExported,
+
+    // сховище
+    usage: usage,
+    estimate: estimate,
+    meta: readMeta,
+
+    persist: {
+      supported: persistSupported,
+      status: persistStatus,
+      isPersisted: persistIsPersisted,
+      request: persistRequest,
+      afterSession: persistAfterSession,
+      RETRY_MS: PERSIST_RETRY_MS
+    },
+
+    backup: {
+      KEEP: BACKUP_KEEP,
+      KEEP_LS: BACKUP_KEEP_LS,
+      MAX_LS_BYTES: BACKUP_LS_MAX_BYTES,
+      push: backupPush,
+      list: backupList,
+      get: backupGet,
+      restore: backupRestore,
+      clear: backupClear,
+      mode: function () { return idbAvailable() ? "idb" : (backupModeForced === "none" ? "none" : "ls"); }
+    },
+
+    // внутрішнє — тільки для tests.html
+    _: {
+      canonical: canonical,
+      deepCopy: deepCopy,
+      emptyState: emptyState,
+      normalizeTop: normalizeTop,
+      migrate: migrate,
+      validateRegistry: validateRegistry,
+      migrations: function () { return MIGRATIONS; },
+      schemaVersion: function () { return SCHEMA_VERSION; },
+      useSchema: function (version, reg) {
+        SCHEMA_VERSION = version;
+        MIGRATIONS = reg || [];
+        Store.SCHEMA_VERSION = version;
+      },
+      restoreSchema: function () {
+        SCHEMA_VERSION = DEFAULT_SCHEMA_VERSION;
+        MIGRATIONS = DEFAULT_MIGRATIONS;
+        Store.SCHEMA_VERSION = DEFAULT_SCHEMA_VERSION;
+      },
+      useIdbName: function (name) { IDB_NAME = name || "bb-backup"; },
+      idbName: function () { return IDB_NAME; },
+      usePersistImpl: function (fn) { persistImpl = fn || null; },
+      isQuotaError: isQuotaError,
+      sessionKey: sessionKey,
+      bytesOf: bytesOf,
+      LS_CAPACITY_BYTES: LS_CAPACITY_BYTES,
+      EXPORT_REMINDER_EVERY: EXPORT_REMINDER_EVERY,
+      useStorage: function (obj) {
+        storage = obj || null;
+        storageChecked = !!obj;
+        cache = null;
+        initResult = null;
+        lock = null;
+        blockedRaw = null;
+        rescueJSON = null;
+      },
+      restoreStorage: function () {
+        storage = null;
+        storageChecked = false;
+        cache = null;
+        initResult = null;
+        lock = null;
+        blockedRaw = null;
+        rescueJSON = null;
+      },
+      forceBackupStore: function (mode) { backupModeForced = mode || "auto"; },
+      resetMeta: function () { lsDel(K.meta); }
+    }
+  };
+
+  global.Store = Store;
+})(typeof window !== "undefined" ? window : this);
+
+</script>
+<script>
+// algo-core.js — ядро арифметики алгоритму.
+//
+// Класичний скрипт (НЕ type="module"), без залежностей і без зовнішніх
+// запитів. Підключається ПІСЛЯ store.js.
+//
+// Джерело чисел — docs/ALGO.md, дослівно:
+//   §0    e1RM з одного сету: Брицький при n ≤ 6, Епплі при n > 6; n > 12 —
+//         сет не використовується для оцінки;
+//   §0    асиметричне згладжування тренду (вгору 0.7/0.3, вниз 0.9/0.1);
+//   §0.1  гілки на межі НЕ сходяться — це відомий і свідомий розрив;
+//   §1    %1RM = інверсія ТІЄЇ САМОЇ гілки; w = e1RM × %1RM × T_adj × S_adj;
+//         округлення вниз до реальної сітки залу, РІВНО ОДИН РАЗ, після обох
+//         множників;
+//   §1.1  круговий обхід «вага → e1RM → вага» — тотожність;
+//   §2    правило рішення прогресії: ADVANCE / CONSOLIDATE / GROW / MISS;
+//   §3    RIR-калібрування: bias, trust, AMRAP-проби, rep-drop-off,
+//         три режими прескрипції за trust;
+//   §11.4 S_adj множиться до округлення, корекція §3 — після S_adj.
+//
+// ─────────────────────────────────────────────────────────────────────────
+// ГОЛОВНЕ ПРАВИЛО ЦЬОГО ФАЙЛУ
+//
+// `factor(n)` (пряма) і `pct(n)` (зворотна) — дві половини однієї тотожності
+// §1.1. Гілку обирає ОДНА функція `branchFor(n)`, і обидві половини питають
+// саме її. Це не стиль, а запобіжник: стара версія рахувала пряму за
+// Брицьким, а інвертувала тільки Епплі, і вага повзла вниз на 3.2–3.7%
+// щосесії саме на силових anchor-рухах (§1.1). Правити одну половину без
+// другої — означає повернути той самий баг.
+//
+// Тому: змінюєш `factor` — зміни `pct`; змінюєш `branchFor` — переганяй
+// секцію «крок 5» у tests.html, вона ловить розходження за визначенням.
+// ─────────────────────────────────────────────────────────────────────────
+
+(function (global) {
+  "use strict";
+
+  // ------------------------------------------------------------------
+  // Константи (числа — з docs/ALGO.md, не переоцінені)
+  // ------------------------------------------------------------------
+
+  var BRZYCKI_MAX_N = 6;   // §0: n ≤ 6 → Брицький, далі Епплі
+  var E1RM_MAX_N = 12;     // §0: n > 12 → сет НЕ дає оцінки e1RM
+  var MIN_N = 1;           // менше одного повтору формули не визначені
+
+  var SMOOTH_UP_OLD = 0.7;   // §0: вгору  e1RM = 0.7 × old + 0.3 × set
+  var SMOOTH_DOWN_OLD = 0.9; // §0: вниз   e1RM = 0.9 × old + 0.1 × set
+
+  var TRUST_PENALTY = 0.02;  // §1: T_adj = 1 − 0.02 × (1 − trust)
+
+  // docs/DATA.md → settings. Використовуються, лише якщо в налаштуваннях
+  // сміття: сітка залу — це фізика, і мовчки лишати її невизначеною гірше,
+  // ніж узяти дефолт і сказати про це кодом відповіді.
+  var DEFAULT_PLATE_STEP = 1.25;
+  var DEFAULT_BAR_WEIGHT = 20;
+
+  // Допуск ТІЛЬКИ для порівнянь із сіткою. У формулах §0/§1 жодних допусків
+  // немає — там тотожність, а не наближення.
+  var GRID_EPS = 1e-9;
+
+  // ------------------------------------------------------------------
+  // Дрібні хелпери
+  // ------------------------------------------------------------------
+
+  function isNum(x) {
+    return typeof x === "number" && isFinite(x);
+  }
+
+  // Прибирає двійковий шум ваг (20 + 0.2 × 7 = 21.400000000000002).
+  // Застосовується ТІЛЬКИ до результату округлення до сітки.
+  function fixKg(x) {
+    return Math.round(x * 1e6) / 1e6;
+  }
+
+  function clamp(x, lo, hi) {
+    return x < lo ? lo : (x > hi ? hi : x);
+  }
+
+  // ------------------------------------------------------------------
+  // §0 / §1 — гілка, пряма формула, зворотна формула
+  // ------------------------------------------------------------------
+
+  // Єдина точка вибору гілки. Обидві формули зобов'язані питати саме її.
+  function branchFor(n) {
+    return n <= BRZYCKI_MAX_N ? "brzycki" : "epley";
+  }
+
+  // Пряма: множник w → e1RM (§0).
+  function factor(n) {
+    return branchFor(n) === "brzycki"
+      ? 36 / (37 - n)
+      : 1 + n / 30;
+  }
+
+  // Зворотна: %1RM (§1). Інверсія тієї самої гілки, що й factor().
+  function pct(n) {
+    return branchFor(n) === "brzycki"
+      ? (37 - n) / 36
+      : 1 / (1 + n / 30);
+  }
+
+  // Спільна перевірка n. Повертає код помилки або null.
+  function nProblem(n) {
+    if (!isNum(n)) return "BAD_N";
+    if (n < MIN_N) return "BAD_N";
+    return null;
+  }
+
+  // ------------------------------------------------------------------
+  // §0 — e1RM з одного сету
+  // ------------------------------------------------------------------
+  //
+  // Повертає повний об'єкт: null-ів у алгоритмі бути не повинно «мовчки»,
+  // у кожної відмови є код і причина, яку можна показати користувачу.
+  //
+  //   { ok, value, n, branch, factor, code }
+  //   code: OK | BAD_WEIGHT | BAD_N | N_TOO_HIGH
+
+  function e1rmInfo(w, n) {
+    var np = nProblem(n);
+    if (!isNum(w) || w <= 0) {
+      return { ok: false, value: null, n: n, branch: null, factor: null, code: "BAD_WEIGHT" };
+    }
+    if (np) {
+      return { ok: false, value: null, n: n, branch: null, factor: null, code: np };
+    }
+    if (n > E1RM_MAX_N) {
+      // §0: точність падає — сет не використовується для оцінки e1RM.
+      return { ok: false, value: null, n: n, branch: branchFor(n), factor: factor(n), code: "N_TOO_HIGH" };
+    }
+    var f = factor(n);
+    return { ok: true, value: w * f, n: n, branch: branchFor(n), factor: f, code: "OK" };
+  }
+
+  // Коротка форма: число або null. null = «оцінки немає», ніколи не NaN.
+  function e1rm(w, n) {
+    var r = e1rmInfo(w, n);
+    return r.ok ? r.value : null;
+  }
+
+  // Зі структури сету (docs/DATA.md): n = reps + RIR_eff (§0).
+  function e1rmForSet(set) {
+    if (!set || typeof set !== "object") {
+      return { ok: false, value: null, n: null, branch: null, factor: null, code: "BAD_SET" };
+    }
+    var reps = set.reps;
+    var rir = ("rirEff" in set) ? set.rirEff : 0;
+    if (!isNum(reps) || !isNum(rir)) {
+      return { ok: false, value: null, n: null, branch: null, factor: null, code: "BAD_N" };
+    }
+    return e1rmInfo(set.w, reps + rir);
+  }
+
+  // ------------------------------------------------------------------
+  // §0 — асиметричне згладжування тренду
+  // ------------------------------------------------------------------
+  //
+  //   { value, direction, wOld, code }
+  //   direction: init | up | down | flat
+
+  function smoothInfo(prev, next) {
+    if (!isNum(next) || next <= 0) {
+      return { value: isNum(prev) ? prev : null, direction: "none", wOld: null, code: "BAD_INPUT" };
+    }
+    // Перший вимір: базова точка ставиться як є. Згладжувати нічого з чим —
+    // і те саме потрібне після розриву тренду (§0.1: зміна діапазону).
+    if (!isNum(prev) || prev <= 0) {
+      return { value: next, direction: "init", wOld: 0, code: "OK" };
+    }
+    if (next === prev) {
+      return { value: prev, direction: "flat", wOld: SMOOTH_UP_OLD, code: "OK" };
+    }
+    var wOld = next > prev ? SMOOTH_UP_OLD : SMOOTH_DOWN_OLD;
+    return { value: wOld * prev + (1 - wOld) * next, direction: next > prev ? "up" : "down", wOld: wOld, code: "OK" };
+  }
+
+  function smooth(prev, next) {
+    return smoothInfo(prev, next).value;
+  }
+
+  // Серія вимірів → серія значень тренду. prev = null → перший вимір
+  // стає базовою точкою.
+  function smoothSeries(values, prev) {
+    var out = [];
+    var cur = isNum(prev) && prev > 0 ? prev : null;
+    if (!values || !values.length) return out;
+    for (var i = 0; i < values.length; i++) {
+      cur = smoothInfo(cur, values[i]).value;
+      out.push(cur);
+    }
+    return out;
+  }
+
+  // ------------------------------------------------------------------
+  // §1 — %1RM і призначення робочої ваги
+  // ------------------------------------------------------------------
+  //
+  // Важливо: верхньої межі n тут НЕМАЄ. Стеля 12 (§0) — це обмеження на
+  // ВИМІР e1RM, а не на призначення: діапазон допоміжки 8–15 плюс цільовий
+  // RIR 3 дає n = 18, і це нормальна прескрипція.
+
+  function pct1rmInfo(n) {
+    var np = nProblem(n);
+    if (np) return { ok: false, value: null, n: n, branch: null, code: np };
+    return { ok: true, value: pct(n), n: n, branch: branchFor(n), code: "OK" };
+  }
+
+  function pct1rm(n) {
+    var r = pct1rmInfo(n);
+    return r.ok ? r.value : null;
+  }
+
+  // §1: T_adj = 1 − 0.02 × (1 − trust). trust поза [0,1] затискається.
+  function tAdj(trust) {
+    var t = isNum(trust) ? clamp(trust, 0, 1) : 0;
+    return 1 - TRUST_PENALTY * (1 - t);
+  }
+
+  // ------------------------------------------------------------------
+  // §1 — округлення вниз до реальної сітки залу
+  // ------------------------------------------------------------------
+  //
+  // Сітки:
+  //   { kind: "barbell",  bar, step }   step = 2 × plateStep (по бліну з боку)
+  //   { kind: "dumbbell", list }        відсортований список наявних гантелей
+  //   { kind: "none" }                  без округлення
+  //
+  // Результат: { ok, weight, code, target, delta }
+  //   code: OK | FLOOR | TOP | NO_GRID | BAD_INPUT
+  //     FLOOR — ціль нижча за найлегше, що фізично існує (порожній гриф /
+  //             найлегша гантель). Повертається саме воно: ALGO про цей
+  //             випадок мовчить, а порожній гриф — це те, що реально лежить
+  //             у залі. Прапорець потрібен UI, щоб сказати «легше не буває».
+  //     TOP   — ціль вища за найважчу наявну гантель; віддається найважча.
+
+  function barbellGrid(settings) {
+    var s = settings || {};
+    var plate = isNum(s.plateStep) && s.plateStep > 0 ? s.plateStep : DEFAULT_PLATE_STEP;
+    var bar = isNum(s.barWeight) && s.barWeight >= 0 ? s.barWeight : DEFAULT_BAR_WEIGHT;
+    // §1: крок на штанзі = 2 × plateStep — блін кладеться з обох боків.
+    return { kind: "barbell", bar: bar, step: 2 * plate };
+  }
+
+  function dumbbellGrid(settings) {
+    var s = settings || {};
+    var raw = Array.isArray(s.dumbbells) ? s.dumbbells : [];
+    var list = [];
+    for (var i = 0; i < raw.length; i++) {
+      if (isNum(raw[i]) && raw[i] > 0) list.push(raw[i]);
+    }
+    list.sort(function (a, b) { return a - b; });
+    return { kind: "dumbbell", list: list };
+  }
+
+  // Налаштування: явні, інакше зі Store (якщо він є і вже піднятий).
+  function settingsFrom(source) {
+    if (source && typeof source === "object") return source;
+    try {
+      if (global.Store && typeof global.Store.getSettings === "function") {
+        var s = global.Store.getSettings();
+        if (s && typeof s === "object") return s;
+      }
+    } catch (e) { /* сховище недоступне — працюємо на дефолтах */ }
+    return { plateStep: DEFAULT_PLATE_STEP, barWeight: DEFAULT_BAR_WEIGHT, dumbbells: [] };
+  }
+
+  // Сітка під конкретну вправу за її обладнанням (docs/DATA.md → exercises).
+  function gridFor(exercise, settings) {
+    var s = settingsFrom(settings);
+    var eq = (exercise && Array.isArray(exercise.equipment)) ? exercise.equipment : [];
+    if (eq.indexOf("dumbbell") >= 0) return dumbbellGrid(s);
+    if (eq.indexOf("barbell") >= 0) return barbellGrid(s);
+    return { kind: "none" };
+  }
+
+  function roundDown(target, grid) {
+    if (!isNum(target) || target <= 0) {
+      return { ok: false, weight: null, code: "BAD_INPUT", target: target, delta: null };
+    }
+    if (!grid || grid.kind === "none") {
+      return { ok: true, weight: target, code: "OK", target: target, delta: 0 };
+    }
+
+    if (grid.kind === "barbell") {
+      if (!isNum(grid.step) || grid.step <= 0 || !isNum(grid.bar) || grid.bar < 0) {
+        return { ok: false, weight: null, code: "BAD_INPUT", target: target, delta: null };
+      }
+      if (target < grid.bar - GRID_EPS) {
+        // Легше за порожній гриф не буває. delta від'ємна — призначене ВИЩЕ
+        // за ціль, і це єдиний випадок, коли §1 «округлюється вниз» не
+        // виконується: фізика важливіша за формулу.
+        return { ok: true, weight: fixKg(grid.bar), code: "FLOOR", target: target, delta: fixKg(target - grid.bar) };
+      }
+      var k = Math.floor((target - grid.bar) / grid.step + GRID_EPS);
+      if (k < 0) k = 0;
+      var w = fixKg(grid.bar + k * grid.step);
+      return { ok: true, weight: w, code: "OK", target: target, delta: fixKg(target - w) };
+    }
+
+    if (grid.kind === "dumbbell") {
+      var list = Array.isArray(grid.list) ? grid.list : [];
+      if (!list.length) {
+        // Список гантелей порожній — округляти нема до чого. Мовчки віддати
+        // сире число означало б призначити вагу, якої в залі не існує.
+        return { ok: false, weight: null, code: "NO_GRID", target: target, delta: null };
+      }
+      if (target < list[0] - GRID_EPS) {
+        return { ok: true, weight: fixKg(list[0]), code: "FLOOR", target: target, delta: fixKg(target - list[0]) };
+      }
+      var best = list[0];
+      for (var i = 0; i < list.length; i++) {
+        if (list[i] <= target + GRID_EPS) best = list[i]; else break;
+      }
+      var top = list[list.length - 1];
+      var code = (target > top + GRID_EPS) ? "TOP" : "OK";
+      return { ok: true, weight: fixKg(best), code: code, target: target, delta: fixKg(target - best) };
+    }
+
+    return { ok: false, weight: null, code: "BAD_INPUT", target: target, delta: null };
+  }
+
+  // ------------------------------------------------------------------
+  // §1 — повне призначення робочої ваги
+  // ------------------------------------------------------------------
+  //
+  // opts: {
+  //   e1rm, reps, targetRir  (або готове n),
+  //   trust  — §1, дає T_adj;  або готове tAdj
+  //   sAdj   — §11.2, 1.00 для 1-ї вправи сесії
+  //   grid   — сітка; null/відсутня → без округлення
+  // }
+  //
+  // Повертає: { ok, code, n, branch, pct, tAdj, sAdj, raw, weight, rounding }
+  //   raw    — до округлення (саме воно бере участь у тотожності §1.1)
+  //   weight — після ОДНОГО округлення, вже після обох множників (§1)
+
+  function assignWeight(opts) {
+    var o = opts || {};
+    var out = {
+      ok: false, code: "BAD_INPUT", n: null, branch: null,
+      pct: null, tAdj: null, sAdj: null, raw: null, weight: null, rounding: null
+    };
+
+    if (!isNum(o.e1rm) || o.e1rm <= 0) { out.code = "BAD_E1RM"; return out; }
+
+    var n = isNum(o.n) ? o.n : (isNum(o.reps) ? o.reps + (isNum(o.targetRir) ? o.targetRir : 0) : NaN);
+    var p = pct1rmInfo(n);
+    if (!p.ok) { out.code = p.code; out.n = n; return out; }
+
+    var ta = isNum(o.tAdj) ? o.tAdj : tAdj(isNum(o.trust) ? o.trust : 1);
+    var sa = isNum(o.sAdj) ? o.sAdj : 1;
+
+    // §1: множники незалежні, округлення — один раз, після обох.
+    var raw = o.e1rm * p.value * ta * sa;
+
+    out.ok = true;
+    out.code = "OK";
+    out.n = n;
+    out.branch = p.branch;
+    out.pct = p.value;
+    out.tAdj = ta;
+    out.sAdj = sa;
+    out.raw = raw;
+
+    if (o.grid && o.grid.kind && o.grid.kind !== "none") {
+      var r = roundDown(raw, o.grid);
+      out.rounding = r;
+      out.weight = r.weight;
+      if (!r.ok) { out.ok = false; out.code = r.code; }
+    } else {
+      out.rounding = null;
+      out.weight = raw;
+    }
+    return out;
+  }
+
+  // ==================================================================
+  // §3 — RIR-калібрування
+  // ==================================================================
+  //
+  // Сенс розділу: RIR не приймається на віру. Заявлений запас порівнюється з
+  // фактично виконаним, з різниці накопичується `bias`, а `trust` вирішує,
+  // наскільки система взагалі спирається на самозвіт (три режими прескрипції).
+  //
+  // Числа — з §3 дослівно:
+  //   RIR_eff = clamp(RIR_reported + bias, 0, 6)
+  //   старт bias: +2.0 «новачок», 0 «досвідчений»
+  //   проба:      e = actual − pred, pred = reps_target + RIR_reported
+  //               bias = median(останні 5 e), зміна ≤ ±0.5 за одну пробу
+  //   drop-off:   заявлено RIR 0, падіння повторів <8% → bias += 0.25
+  //   шум:        стрибок e1RM >7% без зміни ваги → trust не росте
+  //   trust = clamp(0.15 + 0.15 × n_probes − 0.3 × noise, 0, 0.9)
+  //   режими: <0.45 об'єктивний | 0.45…0.7 змішаний | >0.7 авторегуляція
+  //
+  // Позначкою «⚑ рішення реалізації» помічено те, про що §3 мовчить і що
+  // довелось визначити тут (див. звіт кроку 6). Числа §3 не переоцінені.
+
+  var RIR_EFF_MIN = 0;
+  var RIR_EFF_MAX = 6;              // §3: clamp(RIR_reported + bias, 0, 6)
+  var RIR_REPORTED_MAX = 6;         // самозвіт поза 0…6 — не помилка, а прапорець
+
+  var BIAS_START_NOVICE = 2.0;      // §3
+  var BIAS_START_EXPERIENCED = 0;   // §3
+  var BIAS_MIN = -6;                // ⚑ жорсткий стоп; §3 задає лише темп ±0.5
+  var BIAS_MAX = 6;                 // ⚑ дзеркально до стелі RIR_eff
+
+  var PROBE_WINDOW = 5;             // §3: median(останні 5 e)
+  var PROBE_MAX_STEP = 0.5;         // §3: не більше ±0.5 за одну пробу
+  var PROBE_MIN_DAYS = 7;           // §3: раз на 7–10 днів
+  var PROBE_MAX_DAYS = 10;
+
+  var DROPOFF_NORM_LO = 0.10;       // §3: норма падіння −10…−20% (довідково)
+  var DROPOFF_NORM_HI = 0.20;
+  var DROPOFF_FLAT = 0.08;          // §3: падіння <8% при заявленому RIR 0
+  var DROPOFF_BIAS_STEP = 0.25;     // §3: bias += 0.25
+
+  var NOISE_E1RM_JUMP = 0.07;       // §3: стрибок e1RM >7% без зміни ваги
+
+  var TRUST_BASE = 0.15;            // §3, він же trust на порожній історії
+  var TRUST_PER_PROBE = 0.15;
+  var TRUST_NOISE_WEIGHT = 0.3;
+  var TRUST_MIN = 0;
+  var TRUST_MAX = 0.9;
+
+  var MODE_OBJECTIVE_BELOW = 0.45;  // §3: trust < 0.45 → об'єктивний
+  var MODE_MIXED_UP_TO = 0.7;       // §3: 0.45…0.7 → змішаний; далі авторегуляція
+
+  var VETO_DOUBLE_STEP_RIR = 3;     // §3: RIR_eff ≥ 3 → подвійний крок ваги
+  var AUTOREG_RIR_EXCESS = 2;       // §3: сет 1 дав RIR на 2+ вище цілі
+  var AUTOREG_BUMP_LO = 0.025;      // §3: +2.5…5% на сет 2
+  var AUTOREG_BUMP_HI = 0.05;
+
+  // Прибирає двійковий шум у величинах калібрування. Потрібен не для краси:
+  // 0.15 + 0.15 × 2 у double дає 0.44999999999999996, тобто рівно на межі
+  // режимів (0.45) система мовчки лишалась би в «об'єктивному». Округлення
+  // до 1e-6 — єдине місце, де ця межа стає передбачуваною.
+  function fix6(x) {
+    return Math.round(x * 1e6) / 1e6;
+  }
+
+  function median(list) {
+    if (!list || !list.length) return null;
+    var a = [];
+    for (var i = 0; i < list.length; i++) {
+      if (isNum(list[i])) a.push(list[i]);
+    }
+    if (!a.length) return null;
+    a.sort(function (x, y) { return x - y; });
+    var m = a.length >> 1;
+    // Парна кількість → середнє двох центральних. ⚑ §3 каже «median» без
+    // уточнення; беремо стандартне визначення, крок лишається кратним 0.5.
+    return (a.length % 2) ? a[m] : (a[m - 1] + a[m]) / 2;
+  }
+
+  // ------------------------------------------------------------------
+  // §3 — RIR_eff і стартові значення
+  // ------------------------------------------------------------------
+  //
+  //   { ok, value, code, reported, bias, clamped }
+  //   code: OK | BAD_RIR | BAD_BIAS | REPORTED_OUT_OF_RANGE
+  //
+  // REPORTED_OUT_OF_RANGE — це НЕ відмова: значення визначене (затиснуте),
+  // просто позначене. Самозвіт «RIR 9» — інформація про власника, а не
+  // привід віддати NaN.
+
+  function rirEffInfo(reported, bias) {
+    if (!isNum(reported)) {
+      return { ok: false, value: null, code: "BAD_RIR", reported: reported, bias: bias, clamped: false };
+    }
+    if (!isNum(bias)) {
+      return { ok: false, value: null, code: "BAD_BIAS", reported: reported, bias: bias, clamped: false };
+    }
+    var b = clamp(bias, BIAS_MIN, BIAS_MAX);
+    var sum = reported + b;
+    var v = clamp(sum, RIR_EFF_MIN, RIR_EFF_MAX);
+    var code = (reported < RIR_EFF_MIN || reported > RIR_REPORTED_MAX)
+      ? "REPORTED_OUT_OF_RANGE" : "OK";
+    return { ok: true, value: fix6(v), code: code, reported: reported, bias: b, clamped: v !== sum };
+  }
+
+  function rirEff(reported, bias) {
+    var r = rirEffInfo(reported, bias);
+    return r.ok ? r.value : null;
+  }
+
+  // §3 знає рівно два профілі. ⚑ Усе інше (зокрема "intermediate" з
+  // налаштувань) отримує значення новачка з кодом PROFILE_UNKNOWN: помилитись
+  // у бік «самозвіту не довіряю» дешевше — при малому trust вагу все одно
+  // веде прогресія за фактом (§3, об'єктивний режим).
+  var PROFILES_NOVICE = ["novice", "beginner", "новачок"];
+  var PROFILES_EXPERIENCED = ["advanced", "experienced", "expert", "досвідчений"];
+
+  function startBiasInfo(profile) {
+    var p = (typeof profile === "string") ? profile.toLowerCase() : "";
+    if (PROFILES_NOVICE.indexOf(p) >= 0) {
+      return { value: BIAS_START_NOVICE, code: "OK", profile: p };
+    }
+    if (PROFILES_EXPERIENCED.indexOf(p) >= 0) {
+      return { value: BIAS_START_EXPERIENCED, code: "OK", profile: p };
+    }
+    return { value: BIAS_START_NOVICE, code: "PROFILE_UNKNOWN", profile: p };
+  }
+
+  function startBias(profile) { return startBiasInfo(profile).value; }
+
+  // trust на порожній історії — це не окрема константа, а та сама формула §3
+  // при n_probes = 0 і noise = 0.
+  function startTrust() { return trustFrom(0, 0); }
+
+  // ------------------------------------------------------------------
+  // §3 — trust і режим прескрипції
+  // ------------------------------------------------------------------
+
+  function trustFrom(nProbes, noise) {
+    var n = (isNum(nProbes) && nProbes > 0) ? Math.floor(nProbes) : 0;
+    var z = isNum(noise) ? clamp(noise, 0, 1) : 0;
+    return fix6(clamp(TRUST_BASE + TRUST_PER_PROBE * n - TRUST_NOISE_WEIGHT * z, TRUST_MIN, TRUST_MAX));
+  }
+
+  // Сміття на вході → «об'єктивний». Це найобережніший режим: вагу веде факт,
+  // а не самозвіт. Мовчазний NaN тут коштував би неправильної ваги в залі.
+  function modeFor(trust) {
+    var t = isNum(trust) ? trust : 0;
+    if (t < MODE_OBJECTIVE_BELOW) return "objective";
+    if (t <= MODE_MIXED_UP_TO) return "mixed";
+    return "autoreg";
+  }
+
+  // §3, джерело 3: узгодженість e1RM. На вхід — ряд точок однієї вправи в
+  // хронологічному порядку: [{ w, e1rm }, ...] або масив таких рядів.
+  // Порівнюються лише СУСІДНІ точки з однаковою вагою («без зміни ваги»).
+  // ⚑ §3 не задає шкалу `noise`; беремо частку шумних пар — вона в [0,1],
+  // тобто рівно та шкала, у якій множник 0.3 має сенс.
+  function noiseFromInfo(input) {
+    var series = (input && input.length && Array.isArray(input[0])) ? input : [input || []];
+    var pairs = 0, noisy = 0;
+    for (var s = 0; s < series.length; s++) {
+      var row = series[s] || [];
+      for (var i = 1; i < row.length; i++) {
+        var a = row[i - 1], b = row[i];
+        if (!a || !b) continue;
+        if (!isNum(a.e1rm) || a.e1rm <= 0 || !isNum(b.e1rm) || b.e1rm <= 0) continue;
+        if (!isNum(a.w) || !isNum(b.w)) continue;
+        if (Math.abs(a.w - b.w) > GRID_EPS) continue;   // вага змінилась — не сигнал
+        pairs++;
+        if (Math.abs(b.e1rm - a.e1rm) / a.e1rm > NOISE_E1RM_JUMP) noisy++;
+      }
+    }
+    return {
+      value: pairs ? fix6(noisy / pairs) : 0,
+      pairs: pairs, noisy: noisy,
+      code: pairs ? "OK" : "NO_DATA"
+    };
+  }
+
+  function noiseFrom(input) { return noiseFromInfo(input).value; }
+
+  // ------------------------------------------------------------------
+  // §3, джерело 1 — AMRAP-проба
+  // ------------------------------------------------------------------
+
+  // Нормалізована копія секції calibration (форма — docs/DATA.md). Вхід
+  // НІКОЛИ не мутується: калібрування читають кілька механізмів одразу.
+  function normCalibration(cal) {
+    var c = (cal && typeof cal === "object") ? cal : {};
+    return {
+      rirBias: isNum(c.rirBias) ? fix6(clamp(c.rirBias, BIAS_MIN, BIAS_MAX)) : BIAS_START_NOVICE,
+      trust: isNum(c.trust) ? fix6(clamp(c.trust, TRUST_MIN, TRUST_MAX)) : TRUST_BASE,
+      probes: Array.isArray(c.probes) ? c.probes.slice() : []
+    };
+  }
+
+  //   { ok, code, pred, actual, err }
+  //   code: OK | BAD_TARGET | BAD_RIR | BAD_ACTUAL | ZERO_REPS
+  //         | REPORTED_OUT_OF_RANGE (ok: true)
+  //
+  // ⚑ ZERO_REPS: проба з нулем повторів — не вимір максимуму, а зірваний сет
+  // (не та вага, зупинка, помилка вводу). Такий «e» зсунув би bias на всю
+  // величину прогнозу, тому проба відхиляється, а калібрування лишається як є.
+  function probeErrorInfo(probe) {
+    var o = probe || {};
+    var out = { ok: false, code: "BAD_TARGET", pred: null, actual: null, err: null };
+    if (!isNum(o.repsTarget) || o.repsTarget < 1) return out;
+    if (!isNum(o.reportedRir) || o.reportedRir < 0) { out.code = "BAD_RIR"; return out; }
+    if (!isNum(o.actualReps)) { out.code = "BAD_ACTUAL"; return out; }
+    var pred = o.repsTarget + o.reportedRir;
+    if (o.actualReps < 1) {
+      return { ok: false, code: "ZERO_REPS", pred: pred, actual: o.actualReps, err: null };
+    }
+    return {
+      ok: true,
+      code: (o.reportedRir > RIR_REPORTED_MAX) ? "REPORTED_OUT_OF_RANGE" : "OK",
+      pred: pred, actual: o.actualReps, err: fix6(o.actualReps - pred)
+    };
+  }
+
+  // Проба → нове калібрування.
+  //   applyProbe(calibration, { date, exerciseId, repsTarget, reportedRir, actualReps }, { noise })
+  //
+  // Повертає новий об'єкт calibration (вхідний не змінюється) і повний слід
+  // рішення: звідки й куди поїхав bias, чи впрілась стеля ±0.5 за пробу.
+  function applyProbe(cal, probe, opts) {
+    var o = opts || {};
+    var c = normCalibration(cal);
+    var pe = probeErrorInfo(probe);
+
+    if (!pe.ok) {
+      return {
+        ok: false, code: pe.code, ruleId: "RIR_PROBE_REJECTED",
+        calibration: c, probe: null, err: pe.err, target: null, capped: false,
+        biasFrom: c.rirBias, biasTo: c.rirBias, trustFrom: c.trust, trustTo: c.trust
       };
     }
-  } catch (e) {
-    addRow('bad', 'IndexedDB кинув виняток', String(e));
+
+    var p = probe || {};
+    var rec = {
+      date: (p.date === undefined) ? null : p.date,
+      exerciseId: (p.exerciseId === undefined) ? null : p.exerciseId,
+      pred: pe.pred, actual: pe.actual, err: pe.err
+    };
+    var probes = c.probes.concat([rec]);
+
+    // §3: bias = median(останні 5 e)
+    var errs = [];
+    for (var i = Math.max(0, probes.length - PROBE_WINDOW); i < probes.length; i++) {
+      errs.push(probes[i] && probes[i].err);
+    }
+    var target = median(errs);
+    if (target === null) target = c.rirBias;   // жодного придатного e — стоїмо
+
+    // §3: зміна не більше ±0.5 за одну пробу
+    var capped = Math.abs(target - c.rirBias) > PROBE_MAX_STEP + 1e-12;
+    var biasTo = fix6(clamp(
+      clamp(target, c.rirBias - PROBE_MAX_STEP, c.rirBias + PROBE_MAX_STEP),
+      BIAS_MIN, BIAS_MAX
+    ));
+
+    var noise = isNum(o.noise) ? o.noise : 0;
+    var trustTo = trustFrom(probes.length, noise);
+
+    return {
+      ok: true, code: "OK", ruleId: "RIR_PROBE",
+      calibration: { rirBias: biasTo, trust: trustTo, probes: probes },
+      probe: rec, err: pe.err, target: target, capped: capped,
+      biasFrom: c.rirBias, biasTo: biasTo, trustFrom: c.trust, trustTo: trustTo
+    };
   }
 
-  // 9. Режим відображення
-  (function () {
-    var box = document.getElementById('displayModeRow');
-    try {
-      var isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-      var text = isStandalone ? 'standalone (встановлений застосунок)' : 'browser (відкрито у вкладці)';
-      var cls = isStandalone ? 'ok' : 'warn';
-      var icon = isStandalone ? '✅' : '⚠️';
-      var div = document.createElement('div');
-      div.className = 'row ' + cls;
-      div.textContent = icon + ' Режим відображення — ' + text;
-      box.appendChild(div);
-      lines.push('\n== 9. Режим відображення ==');
-      lines.push(icon + ' Режим відображення — ' + text);
-    } catch (e) {
-      lines.push('\n== 9. Режим відображення ==');
-      lines.push('❌ Помилка перевірки display-mode: ' + e);
-    }
-  })();
-
-  // 10. Постійне сховище + оцінка квоти
-  lines.push('\n== 10. Постійне сховище ==');
-  var persistBtn = document.getElementById('btnPersist');
-  var persistStatus = document.getElementById('persistStatus');
-  var estimateStatus = document.getElementById('estimateStatus');
-  persistBtn.onclick = function () {
-    try {
-      if (navigator.storage && navigator.storage.persist) {
-        navigator.storage.persist().then(function (granted) {
-          var text = 'navigator.storage.persist() → ' + granted;
-          persistStatus.textContent = (granted ? '✅ ' : '⚠️ ') + text;
-          lines.push((granted ? '✅ ' : '⚠️ ') + text);
-          refreshReportText();
-        }).catch(function (e) {
-          persistStatus.textContent = '❌ Помилка persist(): ' + e;
-          lines.push('❌ Помилка persist(): ' + e);
-          refreshReportText();
-        });
-      } else {
-        persistStatus.textContent = '⚠️ navigator.storage.persist недоступний у цьому середовищі.';
-        lines.push('⚠️ navigator.storage.persist недоступний у цьому середовищі.');
-        refreshReportText();
-      }
-    } catch (e) {
-      persistStatus.textContent = '❌ Виняток persist(): ' + e;
-      lines.push('❌ Виняток persist(): ' + e);
-      refreshReportText();
-    }
-    try {
-      if (navigator.storage && navigator.storage.estimate) {
-        navigator.storage.estimate().then(function (est) {
-          var usageMb = (est.usage / (1024 * 1024)).toFixed(2);
-          var quotaMb = (est.quota / (1024 * 1024)).toFixed(2);
-          var text = 'usage ' + usageMb + ' МБ / quota ' + quotaMb + ' МБ';
-          estimateStatus.textContent = '✅ ' + text;
-          lines.push('✅ Оцінка сховища — ' + text);
-          refreshReportText();
-        }).catch(function (e) {
-          estimateStatus.textContent = '❌ Помилка estimate(): ' + e;
-          lines.push('❌ Помилка estimate(): ' + e);
-          refreshReportText();
-        });
-      } else {
-        estimateStatus.textContent = '⚠️ navigator.storage.estimate недоступний у цьому середовищі.';
-        lines.push('⚠️ navigator.storage.estimate недоступний у цьому середовищі.');
-        refreshReportText();
-      }
-    } catch (e) {
-      estimateStatus.textContent = '❌ Виняток estimate(): ' + e;
-      lines.push('❌ Виняток estimate(): ' + e);
-      refreshReportText();
-    }
-  };
-
-  // Формування текстового звіту
-  var reportTextArea = document.getElementById('reportText');
-  function refreshReportText() {
-    reportTextArea.value = lines.join('\n');
+  // §3: «раз на 7–10 днів». Планувальна порада, не арифметика — тому чисте
+  // число днів, без роботи з календарем.
+  function probeDue(daysSinceLast) {
+    if (!isNum(daysSinceLast) || daysSinceLast < 0) return "unknown";
+    if (daysSinceLast < PROBE_MIN_DAYS) return "no";
+    if (daysSinceLast <= PROBE_MAX_DAYS) return "due";
+    return "overdue";
   }
-  refreshReportText();
 
-  // 11. кнопка копіювання звіту
-  var copyReportBtn = document.getElementById('btnCopyReport');
-  var copyReportStatus = document.getElementById('reportCopyStatus');
-  copyReportBtn.onclick = function () {
-    refreshReportText();
-    var text = reportTextArea.value;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function () {
-        copyReportStatus.textContent = '✅ Звіт скопійовано в буфер.';
-      }).catch(function () {
-        fallbackCopy(text, copyReportStatus);
-        reportTextArea.select();
+  // ------------------------------------------------------------------
+  // §3, джерело 2 — rep-drop-off між сетами при однаковій вазі
+  // ------------------------------------------------------------------
+  //
+  //   { ok, applies, code, dropOff, delta }
+  //   code: OK | BAD_INPUT | ZERO_REPS | DIFF_WEIGHT | NO_RIR | NOT_RIR0
+  //         | NORMAL_DROPOFF
+  //
+  // ⚑ «Заявлено RIR 0» читається з ПЕРШОГО сета пари: саме він стверджує, що
+  // запасу не лишилось, і саме це твердження перевіряє другий сет.
+  // Від'ємне падіння (другий сет дав більше) теж спрацьовує — це той самий
+  // сигнал, тільки сильніший.
+  function dropOffInfo(setA, setB) {
+    var bad = { ok: false, applies: false, code: "BAD_INPUT", dropOff: null, delta: 0 };
+    if (!setA || !setB || typeof setA !== "object" || typeof setB !== "object") return bad;
+    if (!isNum(setA.reps) || !isNum(setB.reps)) return bad;
+    if (!isNum(setA.w) || !isNum(setB.w)) return bad;
+    if (setA.reps <= 0) {
+      return { ok: false, applies: false, code: "ZERO_REPS", dropOff: null, delta: 0 };
+    }
+    if (Math.abs(setA.w - setB.w) > GRID_EPS) {
+      // §3 визначає сигнал ЛИШЕ при однаковій вазі: інакше падіння повторів
+      // пояснюється вагою, а не запасом.
+      return { ok: true, applies: false, code: "DIFF_WEIGHT", dropOff: null, delta: 0 };
+    }
+    var d = fix6((setA.reps - setB.reps) / setA.reps);
+    var rr = ("rirReported" in setA) ? setA.rirReported : null;
+    if (!isNum(rr)) {
+      return { ok: false, applies: false, code: "NO_RIR", dropOff: d, delta: 0 };
+    }
+    if (rr !== 0) {
+      return { ok: true, applies: false, code: "NOT_RIR0", dropOff: d, delta: 0 };
+    }
+    if (d >= DROPOFF_FLAT) {
+      return { ok: true, applies: false, code: "NORMAL_DROPOFF", dropOff: d, delta: 0 };
+    }
+    return { ok: true, applies: true, code: "OK", dropOff: d, delta: DROPOFF_BIAS_STEP };
+  }
+
+  // Сигнал м'який: рухає bias на 0.25 і НЕ чіпає trust та probes. Довіру
+  // піднімає тільки проба (§3, джерело 1) — це й є різниця між виміром і
+  // непрямою ознакою.
+  function applyDropOff(cal, setA, setB) {
+    var c = normCalibration(cal);
+    var info = dropOffInfo(setA, setB);
+    if (!info.applies) {
+      return {
+        ok: info.ok, code: info.code, applies: false, dropOff: info.dropOff,
+        ruleId: null, calibration: c,
+        biasFrom: c.rirBias, biasTo: c.rirBias, trustFrom: c.trust, trustTo: c.trust
+      };
+    }
+    var biasTo = fix6(clamp(c.rirBias + DROPOFF_BIAS_STEP, BIAS_MIN, BIAS_MAX));
+    return {
+      ok: true, code: "OK", applies: true, dropOff: info.dropOff,
+      ruleId: "RIR_DROPOFF",
+      calibration: { rirBias: biasTo, trust: c.trust, probes: c.probes },
+      biasFrom: c.rirBias, biasTo: biasTo, trustFrom: c.trust, trustTo: c.trust
+    };
+  }
+
+  // ------------------------------------------------------------------
+  // §2 — рішення прогресії (double / лінійна за фактичними повторами)
+  // ------------------------------------------------------------------
+  //
+  // Потрібне тут, бо на ньому стоять два з трьох режимів §3: об'єктивний веде
+  // вагу ТІЛЬКИ цим рішенням, змішаний бере його половиною. Повний §2
+  // (лічильник miss між сесіями, драбина плато §6) живе не тут — цей виклик
+  // лише каже, що робити з наступною сесією, і піднімає прапорець `miss`.
+  //
+  // opts: { weight, setsReps: [..], repsMin, repsMax, lastRirEff, targetRir,
+  //         step, doubleStep }
+  //   doubleStep — вето §3 «RIR_eff ≥ 3 → подвійний крок» (лише об'єктивний
+  //                режим; у решті режимів запас уже врахований через %1RM)
+  //
+  //   { ok, code, decision, ruleId, weight, repsTarget, miss, fact, rirEff }
+  //   decision: ADVANCE | CONSOLIDATE | GROW | MISS
+
+  function progressionDecision(opts) {
+    var o = opts || {};
+    var out = {
+      ok: false, code: "BAD_INPUT", decision: null, ruleId: null,
+      weight: null, repsTarget: null, miss: false, fact: null, rirEff: null
+    };
+    var sets = Array.isArray(o.setsReps) ? o.setsReps : null;
+    if (!sets || !sets.length) { out.code = "NO_HISTORY"; return out; }
+    if (!isNum(o.weight) || o.weight <= 0) { out.code = "BAD_WEIGHT"; return out; }
+    if (!isNum(o.repsMin) || !isNum(o.repsMax) || o.repsMin < 1 || o.repsMax < o.repsMin) {
+      out.code = "BAD_RANGE"; return out;
+    }
+
+    // «Факт» діапазону — НАЙГІРШИЙ сет: double progression закривається лише
+    // тоді, коли reps_max дали ВСІ сети (§2).
+    var fact = null;
+    for (var i = 0; i < sets.length; i++) {
+      if (!isNum(sets[i]) || sets[i] < 0) { out.code = "BAD_REPS"; return out; }
+      if (fact === null || sets[i] < fact) fact = sets[i];
+    }
+
+    // §9.2, те саме правило заповнення: RIR не введений → цільовий RIR тижня.
+    // ⚑ Немає й цілі — беремо 0: це блокує ADVANCE, тобто помилка йде в бік
+    // «не додати вагу», а не «додати без підстав».
+    var rirEffVal = isNum(o.lastRirEff) ? o.lastRirEff
+      : (isNum(o.targetRir) ? o.targetRir : 0);
+    var step = isNum(o.step) ? o.step : 0;
+
+    out.ok = true;
+    out.code = "OK";
+    out.fact = fact;
+    out.rirEff = rirEffVal;
+
+    var allMax = fact >= o.repsMax;
+
+    if (allMax && rirEffVal >= 1) {
+      var mult = (o.doubleStep && rirEffVal >= VETO_DOUBLE_STEP_RIR) ? 2 : 1;
+      out.decision = "ADVANCE";
+      out.ruleId = (mult === 2) ? "ADVANCE_DOUBLE_STEP" : "ADVANCE_DOUBLE";
+      out.weight = fixKg(o.weight + mult * step);
+      out.repsTarget = o.repsMin;
+      return out;
+    }
+    if (allMax) {
+      // RIR_eff = 0 — вето §3: підвищення заблоковане, ціль та сама.
+      out.decision = "CONSOLIDATE";
+      out.ruleId = "CONSOLIDATE_RIR0";
+      out.weight = fixKg(o.weight);
+      out.repsTarget = o.repsMax;
+      return out;
+    }
+    if (fact >= o.repsMin) {
+      out.decision = "GROW";
+      out.ruleId = "GROW_REPS";
+      out.weight = fixKg(o.weight);
+      out.repsTarget = Math.min(fact + 1, o.repsMax);
+      return out;
+    }
+    out.decision = "MISS";
+    out.ruleId = "MISS_BELOW_RANGE";
+    out.weight = fixKg(o.weight);      // §2: НЕ знижувати вагу одразу
+    out.repsTarget = o.repsMin;
+    out.miss = true;
+    return out;
+  }
+
+  // ------------------------------------------------------------------
+  // §3 — три режими прескрипції
+  // ------------------------------------------------------------------
+  //
+  // opts: {
+  //   trust, e1rm, repsTarget, targetRir,
+  //   sAdj  — §11.2, 1.00 для 1-ї вправи сесії
+  //   grid  — сітка §1
+  //   prev: { weight, setsReps, lastRirEff, repsMin, repsMax, step }
+  // }
+  //
+  //   objective (<0.45)   base = вага прогресії §2 (RIR лише як вето)
+  //   mixed (0.45…0.7)    base = 50/50 (вага §1 через %1RM, вага прогресії)
+  //   autoreg (>0.7)      base = вага §1 через %1RM
+  //
+  // Спільне для всіх трьох: раз помножили на S_adj, раз округлили (§1, §11.4).
+  //
+  // ⚑ Порожня історія: `prev` немає → рахувати «за фактичними повторами»
+  // нема з чого. Замість відмови віддаємо вагу §1 з кодом NO_PREV — інакше
+  // перша сесія власника не має ваги взагалі. Прапорець видно в `why`.
+
+  function prescribe(opts) {
+    var o = opts || {};
+    var out = {
+      ok: false, code: "BAD_INPUT", mode: null, ruleId: null,
+      decision: null, repsTarget: null, n: null, branch: null,
+      trust: null, tAdj: null, sAdj: null,
+      rirBase: null, doubleBase: null, base: null,
+      raw: null, weight: null, rounding: null, progression: null, why: null
+    };
+
+    var trust = isNum(o.trust) ? clamp(o.trust, TRUST_MIN, 1) : 0;
+    var mode = modeFor(trust);
+    var sAdj = isNum(o.sAdj) ? o.sAdj : 1;
+    var ta = tAdj(trust);
+
+    out.mode = mode;
+    out.trust = trust;
+    out.tAdj = ta;
+    out.sAdj = sAdj;
+
+    // 1. Гілка прогресії §2 — вона ж задає ціль повторів наступної сесії.
+    var prog = null;
+    if (o.prev && typeof o.prev === "object") {
+      prog = progressionDecision({
+        weight: o.prev.weight,
+        setsReps: o.prev.setsReps,
+        repsMin: o.prev.repsMin,
+        repsMax: o.prev.repsMax,
+        lastRirEff: o.prev.lastRirEff,
+        targetRir: o.targetRir,
+        step: o.prev.step,
+        doubleStep: (mode === "objective")
       });
+      out.progression = prog;
+      if (prog.ok) {
+        out.decision = prog.decision;
+        out.doubleBase = prog.weight;
+      }
+    }
+
+    var repsT = (prog && prog.ok) ? prog.repsTarget : o.repsTarget;
+    if (!isNum(repsT) || repsT < 1) { out.code = "BAD_REPS_TARGET"; return out; }
+    var n = repsT + (isNum(o.targetRir) ? o.targetRir : 0);
+    var p = pct1rmInfo(n);
+    out.repsTarget = repsT;
+    out.n = n;
+    if (p.ok) out.branch = p.branch;
+
+    // 2. Гілка §1 — %1RM по тій самій двогілковій інверсії, без окремої таблиці.
+    if (isNum(o.e1rm) && o.e1rm > 0 && p.ok) {
+      out.rirBase = o.e1rm * p.value * ta;
+    }
+
+    // 3. Змішування за режимом.
+    var base = null;
+    var code = "OK";
+    var ruleId = null;
+    if (mode === "objective") {
+      ruleId = "PRESCRIBE_OBJECTIVE";
+      if (out.doubleBase !== null) {
+        base = out.doubleBase;
+      } else if (out.rirBase !== null) {
+        base = out.rirBase; code = "NO_PREV";
+      }
+    } else if (mode === "mixed") {
+      ruleId = "PRESCRIBE_MIXED";
+      if (out.doubleBase !== null && out.rirBase !== null) {
+        base = 0.5 * (out.rirBase + out.doubleBase);
+      } else if (out.rirBase !== null) {
+        base = out.rirBase; code = "NO_PREV";
+      } else if (out.doubleBase !== null) {
+        base = out.doubleBase; code = "NO_E1RM";
+      }
     } else {
-      fallbackCopy(text, copyReportStatus);
-      reportTextArea.select();
+      ruleId = "PRESCRIBE_AUTOREG";
+      if (out.rirBase !== null) {
+        base = out.rirBase;
+      } else if (out.doubleBase !== null) {
+        base = out.doubleBase; code = "NO_E1RM";
+      }
     }
+
+    out.ruleId = ruleId;
+    if (base === null) {
+      out.code = (prog && !prog.ok) ? prog.code : "NO_BASIS";
+      out.why = {
+        ruleId: ruleId, mode: mode,
+        inputs: { trust: trust, e1rm: isNum(o.e1rm) ? o.e1rm : null, n: n, sAdj: sAdj }
+      };
+      return out;
+    }
+
+    // §1 + §11.4: множники незалежні, округлення РІВНО ОДИН РАЗ, після обох.
+    var raw = base * sAdj;
+    out.base = base;
+    out.raw = raw;
+    out.ok = true;
+    out.code = code;
+
+    if (o.grid && o.grid.kind && o.grid.kind !== "none") {
+      var r = roundDown(raw, o.grid);
+      out.rounding = r;
+      out.weight = r.weight;
+      if (!r.ok) { out.ok = false; out.code = r.code; }
+    } else {
+      out.weight = raw;
+    }
+
+    out.why = {
+      ruleId: ruleId, mode: mode,
+      inputs: {
+        trust: trust, e1rm: isNum(o.e1rm) ? o.e1rm : null,
+        n: n, repsTarget: repsT, tAdj: ta, sAdj: sAdj,
+        decision: out.decision,
+        prevWeight: (o.prev && isNum(o.prev.weight)) ? o.prev.weight : null,
+        note: (code === "OK") ? null : code
+      }
+    };
+    return out;
+  }
+
+  // §3, авторегуляція: сет 1 дав RIR на 2+ вище цілі → +2.5–5% негайно.
+  // §11.4: застосовується ПІСЛЯ S_adj і має пріоритет (факт сильніший за
+  // прогноз), тому на вхід іде вже готовий `raw` з prescribe().
+  //
+  // ⚑ §3 дає діапазон «+2.5–5%», не число. Розкладаємо детерміновано по
+  // самому надлишку: рівно 2 → 2.5%, 3 і більше → 5%. Обидва кінці діапазону
+  // §3 використані, проміжних значень не вигадуємо.
+  function sessionCorrection(opts) {
+    var o = opts || {};
+    var out = {
+      applies: false, code: "OK", ruleId: null, mode: null,
+      excess: null, bump: 0, raw: isNum(o.raw) ? o.raw : null,
+      weight: null, rounding: null
+    };
+    if (!isNum(o.raw) || o.raw <= 0) { out.code = "BAD_INPUT"; return out; }
+
+    var mode = modeFor(isNum(o.trust) ? o.trust : 0);
+    out.mode = mode;
+
+    if (!isNum(o.firstSetRirEff) || !isNum(o.targetRir)) { out.code = "NO_RIR"; return out; }
+    var excess = o.firstSetRirEff - o.targetRir;
+    out.excess = excess;
+
+    if (mode !== "autoreg") { out.code = "MODE_OFF"; return out; }
+    if (excess < AUTOREG_RIR_EXCESS) { out.code = "NO_EXCESS"; return out; }
+
+    var bump = (excess >= AUTOREG_RIR_EXCESS + 1) ? AUTOREG_BUMP_HI : AUTOREG_BUMP_LO;
+    var raw = o.raw * (1 + bump);
+    out.applies = true;
+    out.ruleId = "RIR_AUTOREG_BUMP";
+    out.bump = bump;
+    out.raw = raw;
+
+    if (o.grid && o.grid.kind && o.grid.kind !== "none") {
+      var r = roundDown(raw, o.grid);
+      out.rounding = r;
+      out.weight = r.weight;
+      if (!r.ok) out.code = r.code;
+    } else {
+      out.weight = raw;
+    }
+    return out;
+  }
+
+  // ------------------------------------------------------------------
+  // Публічний API
+  // ------------------------------------------------------------------
+
+  var AlgoCore = {
+    // константи — щоб тести й наступні кроки не дублювали числа
+    C: {
+      BRZYCKI_MAX_N: BRZYCKI_MAX_N,
+      E1RM_MAX_N: E1RM_MAX_N,
+      MIN_N: MIN_N,
+      SMOOTH_UP_OLD: SMOOTH_UP_OLD,
+      SMOOTH_DOWN_OLD: SMOOTH_DOWN_OLD,
+      TRUST_PENALTY: TRUST_PENALTY,
+      DEFAULT_PLATE_STEP: DEFAULT_PLATE_STEP,
+      DEFAULT_BAR_WEIGHT: DEFAULT_BAR_WEIGHT,
+
+      // §3 — калібрування
+      RIR_EFF_MIN: RIR_EFF_MIN,
+      RIR_EFF_MAX: RIR_EFF_MAX,
+      BIAS_START_NOVICE: BIAS_START_NOVICE,
+      BIAS_START_EXPERIENCED: BIAS_START_EXPERIENCED,
+      BIAS_MIN: BIAS_MIN,
+      BIAS_MAX: BIAS_MAX,
+      PROBE_WINDOW: PROBE_WINDOW,
+      PROBE_MAX_STEP: PROBE_MAX_STEP,
+      PROBE_MIN_DAYS: PROBE_MIN_DAYS,
+      PROBE_MAX_DAYS: PROBE_MAX_DAYS,
+      DROPOFF_NORM_LO: DROPOFF_NORM_LO,
+      DROPOFF_NORM_HI: DROPOFF_NORM_HI,
+      DROPOFF_FLAT: DROPOFF_FLAT,
+      DROPOFF_BIAS_STEP: DROPOFF_BIAS_STEP,
+      NOISE_E1RM_JUMP: NOISE_E1RM_JUMP,
+      TRUST_BASE: TRUST_BASE,
+      TRUST_PER_PROBE: TRUST_PER_PROBE,
+      TRUST_NOISE_WEIGHT: TRUST_NOISE_WEIGHT,
+      TRUST_MIN: TRUST_MIN,
+      TRUST_MAX: TRUST_MAX,
+      MODE_OBJECTIVE_BELOW: MODE_OBJECTIVE_BELOW,
+      MODE_MIXED_UP_TO: MODE_MIXED_UP_TO,
+      VETO_DOUBLE_STEP_RIR: VETO_DOUBLE_STEP_RIR,
+      AUTOREG_RIR_EXCESS: AUTOREG_RIR_EXCESS,
+      AUTOREG_BUMP_LO: AUTOREG_BUMP_LO,
+      AUTOREG_BUMP_HI: AUTOREG_BUMP_HI
+    },
+
+    // §0
+    branchFor: branchFor,
+    factor: factor,
+    e1rm: e1rm,
+    e1rmInfo: e1rmInfo,
+    e1rmForSet: e1rmForSet,
+    smooth: smooth,
+    smoothInfo: smoothInfo,
+    smoothSeries: smoothSeries,
+
+    // §1
+    pct1rm: pct1rm,
+    pct1rmInfo: pct1rmInfo,
+    tAdj: tAdj,
+    assignWeight: assignWeight,
+
+    // сітка
+    barbellGrid: barbellGrid,
+    dumbbellGrid: dumbbellGrid,
+    gridFor: gridFor,
+    settingsFrom: settingsFrom,
+    roundDown: roundDown,
+
+    // §3 — калібрування RIR
+    median: median,
+    rirEff: rirEff,
+    rirEffInfo: rirEffInfo,
+    startBias: startBias,
+    startBiasInfo: startBiasInfo,
+    startTrust: startTrust,
+    trustFrom: trustFrom,
+    modeFor: modeFor,
+    noiseFrom: noiseFrom,
+    noiseFromInfo: noiseFromInfo,
+    normCalibration: normCalibration,
+    probeErrorInfo: probeErrorInfo,
+    applyProbe: applyProbe,
+    probeDue: probeDue,
+    dropOffInfo: dropOffInfo,
+    applyDropOff: applyDropOff,
+
+    // §2 — рішення прогресії (носій об'єктивного режиму §3)
+    progressionDecision: progressionDecision,
+
+    // §3 — прескрипція
+    prescribe: prescribe,
+    sessionCorrection: sessionCorrection
   };
 
-  // Реєстрація Service Worker
+  global.AlgoCore = AlgoCore;
+
+})(typeof window !== "undefined" ? window : this);
+
+</script>
+<script>
+// ui.js — каркас застосунку: hash-роутер + рендер екранів.
+// Класичний скрипт (НЕ type="module"). Без залежностей.
+
+(function () {
+  "use strict";
+
+  // Версію штампує build.ps1 у <meta name="app-version" content="...">
+  // (index.html → сюди підставляється 0.4.0+2026080112). У непобудованому
+  // джерелі такого meta-тега нема — тоді лишається значення для розробки.
+  var APP_VERSION = "0.1.0-dev";
   try {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(function () {
-        console.log('SW зареєстровано');
-      }).catch(function (e) {
-        console.warn('SW не зареєструвався: ' + e);
+    var verMeta = document.querySelector('meta[name="app-version"]');
+    if (verMeta && verMeta.content && verMeta.content.indexOf("0.4.0+2026080112") === -1) {
+      APP_VERSION = verMeta.content;
+    }
+  } catch (e) { /* ігноруємо — лишається dev-значення */ }
+  window.APP_VERSION = APP_VERSION;
+
+  // ------------------------------------------------------------------
+  // Store: ініціалізація один раз при старті + підписка на помилки
+  // ------------------------------------------------------------------
+  var storeInitResult = null;
+  var storeErrorMsg = null; // остання помилка з Store.onError()
+
+  function initStore() {
+    try {
+      if (window.Store && typeof Store.init === "function") {
+        storeInitResult = Store.init();
+        if (typeof Store.onError === "function") {
+          Store.onError(function (err) {
+            storeErrorMsg = (err && err.message) ? err.message : "Помилка сховища.";
+            if (getScreenIdFromHash() === "settings") {
+              renderScreen("settings");
+            }
+          });
+        }
+      }
+    } catch (e) {
+      storeInitResult = {
+        ok: false, status: "unavailable", state: null,
+        warning: { code: "INIT_THROW", message: "Не вдалось ініціалізувати сховище." }
+      };
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // Опис екранів: hash -> { title, nav (пункт нижньої навігації або null) }
+  // ------------------------------------------------------------------
+  var SCREENS = {
+    "home": { title: "Сьогодні", navId: "home" },
+    "workout": { title: "Тренування", navId: null },
+    "exercise": { title: "Вправи", navId: "exercise" },
+    "volume": { title: "Обсяг", navId: "volume" },
+    "progress": { title: "Прогрес", navId: "progress" },
+    "settings": { title: "Налаштування", navId: "settings" }
+  };
+
+  var DEFAULT_SCREEN = "home";
+
+  var NAV_ITEMS = [
+    { id: "home", hash: "home", icon: "⌂", label: "Сьогодні" },
+    { id: "exercise", hash: "exercise", icon: "≡", label: "Вправи" },
+    { id: "volume", hash: "volume", icon: "▤", label: "Обсяг" },
+    { id: "progress", hash: "progress", icon: "↗", label: "Прогрес" },
+    { id: "settings", hash: "settings", icon: "⚙", label: "Ще" }
+  ];
+
+  var mainEl = null;
+  var navButtons = {};
+
+  // ------------------------------------------------------------------
+  // Роутер
+  // ------------------------------------------------------------------
+
+  function getScreenIdFromHash() {
+    var raw = (location.hash || "").replace(/^#/, "");
+    if (SCREENS.hasOwnProperty(raw)) {
+      return raw;
+    }
+    return DEFAULT_SCREEN;
+  }
+
+  function renderScreen(screenId) {
+    var meta = SCREENS[screenId] || SCREENS[DEFAULT_SCREEN];
+
+    if (mainEl) {
+      mainEl.innerHTML = "";
+
+      var title = document.createElement("h1");
+      title.className = "screen-title";
+      title.textContent = meta.title;
+      mainEl.appendChild(title);
+
+      if (screenId === "settings") {
+        renderSettingsScreen(mainEl);
+      } else {
+        var stub = document.createElement("p");
+        stub.className = "screen-stub";
+        stub.textContent = "екран у розробці";
+        mainEl.appendChild(stub);
+      }
+    }
+
+    // Підсвітити активний пункт нижньої навігації (якщо є)
+    for (var key in navButtons) {
+      if (navButtons.hasOwnProperty(key)) {
+        var btn = navButtons[key];
+        var isActive = key === screenId;
+        btn.classList.toggle("is-active", isActive);
+        if (isActive) {
+          btn.setAttribute("aria-current", "page");
+        } else {
+          btn.removeAttribute("aria-current");
+        }
+      }
+    }
+  }
+
+  function router() {
+    var screenId = getScreenIdFromHash();
+    renderScreen(screenId);
+  }
+
+  // ------------------------------------------------------------------
+  // Побудова каркаса: нижня навігація + область екрана
+  // ------------------------------------------------------------------
+
+  function buildShell() {
+    var root = document.getElementById("app");
+    if (!root) {
+      return;
+    }
+
+    var shell = document.createElement("div");
+    shell.className = "app-shell";
+
+    var main = document.createElement("main");
+    main.className = "app-main";
+    main.id = "app-main";
+
+    var nav = document.createElement("nav");
+    nav.className = "bottom-nav";
+
+    NAV_ITEMS.forEach(function (item) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "nav-item";
+      btn.dataset.hash = item.hash;
+
+      var iconEl = document.createElement("span");
+      iconEl.className = "nav-item-icon";
+      iconEl.textContent = item.icon;
+
+      var labelEl = document.createElement("span");
+      labelEl.textContent = item.label;
+
+      btn.appendChild(iconEl);
+      btn.appendChild(labelEl);
+
+      btn.addEventListener("click", function () {
+        location.hash = "#" + item.hash;
+      });
+
+      nav.appendChild(btn);
+      navButtons[item.hash] = btn;
+    });
+
+    shell.appendChild(main);
+    shell.appendChild(nav);
+    root.appendChild(shell);
+
+    mainEl = main;
+  }
+
+  // ------------------------------------------------------------------
+  // Реєстрація Service Worker (не має ламати сторінку, якщо недоступний)
+  // ------------------------------------------------------------------
+
+  function registerServiceWorker() {
+    try {
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("./sw.js", { updateViaCache: "none" })
+          .catch(function () {
+            /* локально/без https — очікувано, ігноруємо */
+          });
+      }
+    } catch (e) {
+      /* нічого не робимо: SW не критичний для роботи UI */
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // Екран Settings / Data
+  // ------------------------------------------------------------------
+
+  function makeCard() {
+    var card = document.createElement("div");
+    card.className = "card";
+    return card;
+  }
+
+  function makeSectionTitle(text) {
+    var h = document.createElement("h2");
+    h.style.fontSize = "var(--font-size-lg)";
+    h.style.marginBottom = "var(--space-3)";
+    h.textContent = text;
+    return h;
+  }
+
+  function makeStatusLine(text, isError) {
+    var p = document.createElement("p");
+    p.className = "text-faint";
+    p.style.marginTop = "var(--space-2)";
+    if (isError) {
+      p.style.color = "var(--color-danger)";
+    }
+    p.textContent = text;
+    return p;
+  }
+
+  // Банер стану сховища: future / corrupt / unavailable / onError.
+  function renderStoreBanner(container) {
+    var status = storeInitResult ? storeInitResult.status : null;
+    var warning = storeInitResult ? storeInitResult.warning : null;
+
+    var messages = [];
+    if (status === "future" || status === "corrupt") {
+      messages.push({
+        text: (warning && warning.message) ||
+          "Запис у сховище заблоковано. Зробіть експорт зараз.",
+        danger: true
+      });
+    } else if (status === "unavailable") {
+      messages.push({
+        text: (warning && warning.message) ||
+          "Сховище браузера недоступне — дані НЕ зберігаються.",
+        danger: true
       });
     }
-  } catch (e) {
-    console.warn('Помилка реєстрації SW: ' + e);
+    if (storeErrorMsg) {
+      messages.push({ text: storeErrorMsg, danger: true });
+    }
+
+    if (messages.length === 0) {
+      return;
+    }
+
+    var card = makeCard();
+    card.style.borderColor = "var(--color-danger)";
+    messages.forEach(function (m) {
+      var p = document.createElement("p");
+      p.style.color = "var(--color-danger)";
+      p.style.fontWeight = "700";
+      p.textContent = m.text;
+      card.appendChild(p);
+    });
+    container.appendChild(card);
   }
+
+  function renderSettingsScreen(container) {
+    renderStoreBanner(container);
+
+    var status = storeInitResult ? storeInitResult.status : null;
+    var locked = !!(window.Store && typeof Store.isLocked === "function" && Store.isLocked());
+
+    // ---- Export ----
+    var exportCard = makeCard();
+    exportCard.appendChild(makeSectionTitle("Експорт даних"));
+
+    var exportHint = document.createElement("p");
+    exportHint.className = "text-dim";
+    exportHint.style.marginBottom = "var(--space-3)";
+    exportHint.textContent = locked
+      ? "Запис заблоковано, але дані все одно можна вивезти — саме зараз це варто зробити."
+      : "Збережіть повний стан на випадок втрати телефона чи очищення даних браузера.";
+    exportCard.appendChild(exportHint);
+
+    var exportStatus = makeStatusLine("");
+    exportStatus.style.display = "none";
+
+    function getExportJSON() {
+      // При future/corrupt звичайний exportJSON недоступний — беремо сирі дані.
+      if (locked && window.Store && typeof Store.getBlockedRaw === "function") {
+        var raw = Store.getBlockedRaw();
+        if (raw) return raw;
+      }
+      return Store.exportJSON();
+    }
+
+    function showExportStatus(text, isError) {
+      exportStatus.textContent = text;
+      exportStatus.style.display = "";
+      exportStatus.style.color = isError ? "var(--color-danger)" : "var(--color-success)";
+    }
+
+    var btnRow = document.createElement("div");
+    btnRow.style.display = "flex";
+    btnRow.style.flexDirection = "column";
+    btnRow.style.gap = "var(--space-3)";
+
+    var btnFile = document.createElement("button");
+    btnFile.type = "button";
+    btnFile.className = "btn btn-primary";
+    btnFile.textContent = "Експорт у файл";
+    btnFile.addEventListener("click", function () {
+      try {
+        if (locked) {
+          var raw = getExportJSON();
+          var blob = new Blob([raw], { type: "application/json" });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement("a");
+          a.href = url;
+          a.download = "brainbod-blocked-" + Date.now() + ".json";
+          a.style.display = "none";
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(function () {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }, 0);
+          showExportStatus("Файл збережено (сирі дані, запис заблоковано).", false);
+        } else {
+          var res = Store.downloadFile();
+          if (res.ok) {
+            showExportStatus("Файл \"" + res.filename + "\" збережено.", false);
+          } else {
+            showExportStatus("Не вдалось зберегти файл (" + res.code + ").", true);
+          }
+        }
+      } catch (e) {
+        showExportStatus("Помилка експорту у файл.", true);
+      }
+    });
+
+    var btnClip = document.createElement("button");
+    btnClip.type = "button";
+    btnClip.className = "btn btn-secondary";
+    btnClip.textContent = "Копіювати в буфер";
+    btnClip.addEventListener("click", function () {
+      try {
+        if (locked) {
+          var raw = getExportJSON();
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(raw).then(function () {
+              showExportStatus("Скопійовано в буфер (сирі дані).", false);
+            }, function () {
+              showExportStatus("Не вдалось скопіювати.", true);
+            });
+          } else {
+            showExportStatus("Буфер обміну недоступний у цьому браузері.", true);
+          }
+        } else {
+          Store.copyToClipboard().then(function (res) {
+            if (res.ok) {
+              showExportStatus("Скопійовано в буфер.", false);
+            } else {
+              showExportStatus("Не вдалось скопіювати (" + res.code + ").", true);
+            }
+          });
+        }
+      } catch (e) {
+        showExportStatus("Помилка копіювання в буфер.", true);
+      }
+    });
+
+    btnRow.appendChild(btnFile);
+    btnRow.appendChild(btnClip);
+    exportCard.appendChild(btnRow);
+    exportCard.appendChild(exportStatus);
+    container.appendChild(exportCard);
+
+    // ---- Import ----
+    var importCard = makeCard();
+    importCard.appendChild(makeSectionTitle("Імпорт даних"));
+
+    var importWarn = document.createElement("p");
+    importWarn.style.color = "var(--color-danger)";
+    importWarn.style.marginBottom = "var(--space-3)";
+    importWarn.textContent =
+      "Увага: імпорт ПЕРЕТИРАЄ поточну історію тренувань. Перевірте, що файл той, що треба.";
+    importCard.appendChild(importWarn);
+
+    var fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "application/json,.json";
+    fileInput.style.marginBottom = "var(--space-3)";
+
+    var importStatus = makeStatusLine("");
+    importStatus.style.display = "none";
+
+    function showImportStatus(text, isError) {
+      importStatus.textContent = text;
+      importStatus.style.display = "";
+      importStatus.style.color = isError ? "var(--color-danger)" : "var(--color-success)";
+    }
+
+    var btnImport = document.createElement("button");
+    btnImport.type = "button";
+    btnImport.className = "btn btn-secondary";
+    btnImport.textContent = "Імпортувати обраний файл";
+    btnImport.addEventListener("click", function () {
+      var file = fileInput.files && fileInput.files[0];
+      if (!file) {
+        showImportStatus("Спочатку оберіть файл.", true);
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function () {
+        var text = String(reader.result || "");
+        var confirmed = window.confirm(
+          "Це перетре поточну історію тренувань даними з файлу \"" + file.name +
+          "\". Продовжити?"
+        );
+        if (!confirmed) {
+          showImportStatus("Імпорт скасовано.", false);
+          return;
+        }
+        try {
+          var res = Store.importJSON(text);
+          if (res.ok) {
+            showImportStatus("Дані імпортовано. Оновлюємо екран…", false);
+            setTimeout(function () {
+              initStore();
+              renderScreen("settings");
+            }, 600);
+          } else {
+            showImportStatus(res.message || ("Помилка імпорту (" + res.code + ")."), true);
+          }
+        } catch (e) {
+          showImportStatus("Файл не вдалось застосувати — можливо, він пошкоджений.", true);
+        }
+      };
+      reader.onerror = function () {
+        showImportStatus("Не вдалось прочитати файл.", true);
+      };
+      reader.readAsText(file);
+    });
+
+    importCard.appendChild(fileInput);
+    importCard.appendChild(document.createElement("br"));
+    importCard.appendChild(btnImport);
+    importCard.appendChild(importStatus);
+    container.appendChild(importCard);
+
+    // ---- Версія ----
+    var versionCard = makeCard();
+    versionCard.appendChild(makeSectionTitle("Про застосунок"));
+    var versionRow = document.createElement("p");
+    versionRow.className = "text-dim";
+    versionRow.textContent = "Версія: " + APP_VERSION;
+    versionCard.appendChild(versionRow);
+    container.appendChild(versionCard);
+
+    // ---- Оновити застосунок (аварійна кнопка) ----
+    var updateCard = makeCard();
+    updateCard.appendChild(makeSectionTitle("Оновити застосунок"));
+
+    var updateHint = document.createElement("p");
+    updateHint.className = "text-faint";
+    updateHint.style.marginBottom = "var(--space-3)";
+    updateHint.textContent =
+      "Скидає кеш коду застосунку (Service Worker), якщо стара версія залипла. " +
+      "Дані тренувань зберігаються окремо (localStorage) і від цього не зникають.";
+    updateCard.appendChild(updateHint);
+
+    var updateStatus = makeStatusLine("");
+    updateStatus.style.display = "none";
+
+    var btnUpdate = document.createElement("button");
+    btnUpdate.type = "button";
+    btnUpdate.className = "btn btn-secondary";
+    btnUpdate.textContent = "Оновити застосунок";
+    btnUpdate.addEventListener("click", function () {
+      updateStatus.style.display = "";
+      updateStatus.style.color = "var(--color-text-dim)";
+      updateStatus.textContent = "Оновлюємо…";
+      var tasks = [];
+      try {
+        if (window.caches && caches.keys) {
+          tasks.push(
+            caches.keys().then(function (keys) {
+              return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+            })
+          );
+        }
+        if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+          tasks.push(
+            navigator.serviceWorker.getRegistrations().then(function (regs) {
+              return Promise.all(regs.map(function (r) { return r.unregister(); }));
+            })
+          );
+        }
+      } catch (e) { /* продовжуємо, reload все одно спрацює */ }
+
+      Promise.all(tasks).then(function () {
+        location.reload();
+      }, function () {
+        location.reload();
+      });
+    });
+
+    updateCard.appendChild(btnUpdate);
+    updateCard.appendChild(updateStatus);
+    container.appendChild(updateCard);
+  }
+
+  // ------------------------------------------------------------------
+  // Старт
+  // ------------------------------------------------------------------
+
+  document.addEventListener("DOMContentLoaded", function () {
+    initStore();
+    buildShell();
+    window.addEventListener("hashchange", router);
+    router();
+    registerServiceWorker();
+  });
 })();
+
 </script>
 </body>
 </html>

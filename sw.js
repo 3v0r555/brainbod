@@ -1,8 +1,11 @@
-// Service Worker для PWA "Тренування".
+﻿// Service Worker для PWA "BrainBod".
 // Свіжість важливіша за офлайн: навігація завжди тягне мережу першою.
 
-var APP_VERSION = 'probe-1';
-var CACHE_NAME = 'trn-' + APP_VERSION;
+// APP_VERSION штампує build.ps1 при збірці (крок 1b). Значення нижче —
+// заглушка для розробки; НЕ публікувати dist/ в обхід build.ps1, інакше
+// Service Worker віддасть стару версію.
+var APP_VERSION = '0.4.0+2026080112';
+var CACHE_NAME = 'bb-' + APP_VERSION;
 
 // Що можна класти в кеш одразу при встановленні.
 var PRECACHE_URLS = [
@@ -33,8 +36,12 @@ self.addEventListener('activate', function (event) {
       return Promise.all(
         names
           .filter(function (name) {
-            // Видаляємо всі наші кеші попередніх версій.
-            return name.indexOf('trn-') === 0 && name !== CACHE_NAME;
+            // Видаляємо всі наші кеші попередніх версій (bb-*) і, окремо,
+            // усі старі кеші під колишнім префіксом trn- (до ребрендингу
+            // на BrainBod) — інакше вони лишаться назавжди, бо на github.io
+            // всі проєкти акаунта ділять один origin і ніхто інший їх не прибере.
+            return (name.indexOf('bb-') === 0 && name !== CACHE_NAME) ||
+              name.indexOf('trn-') === 0;
           })
           .map(function (name) {
             return caches.delete(name);
