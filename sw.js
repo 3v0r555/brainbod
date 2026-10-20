@@ -1,10 +1,10 @@
-﻿// Service Worker для PWA "BrainBod".
+// Service Worker для PWA "BrainBod".
 // Свіжість важливіша за офлайн: навігація завжди тягне мережу першою.
 
 // APP_VERSION штампує build.ps1 при збірці (крок 1b). Значення нижче —
 // заглушка для розробки; НЕ публікувати dist/ в обхід build.ps1, інакше
 // Service Worker віддасть стару версію.
-var APP_VERSION = '0.4.0+2026080112';
+var APP_VERSION = '0.4.0+2026102010';
 var CACHE_NAME = 'bb-' + APP_VERSION;
 
 // Що можна класти в кеш одразу при встановленні.
